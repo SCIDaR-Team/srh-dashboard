@@ -133,26 +133,27 @@ export function FilterPanel({
           />
         </div>
 
-        {/* State (or Commodity, on the facility variant) */}
-        {variant === 'default' && (
-          <div className="space-y-1">
-            <label className={LABEL_CLASS}>
-              <MapPin size={13} /> State
-            </label>
-            <select
-              className={SELECT_CLASS}
-              value={state}
-              onChange={(e) => setFilter('state', e.target.value)}
-            >
-              <option value={ALL}>All states</option>
-              {states.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* State — shown on every page, including Facility Functionality.
+            The original spec swapped State for "Commodity" on this variant,
+            but we never wired a Commodity filter into the store, so hiding
+            State accomplished nothing useful. */}
+        <div className="space-y-1">
+          <label className={LABEL_CLASS}>
+            <MapPin size={13} /> State
+          </label>
+          <select
+            className={SELECT_CLASS}
+            value={state}
+            onChange={(e) => setFilter('state', e.target.value)}
+          >
+            <option value={ALL}>All states</option>
+            {states.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* LGA */}
         <div className="space-y-1">
