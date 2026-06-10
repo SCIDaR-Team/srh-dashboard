@@ -66,7 +66,7 @@ export function BreakdownMetric({
 
   return (
     <>
-      <div ref={triggerRef}>
+      <div ref={triggerRef} className="h-full">
         <MetricCard {...metricProps} onClick={handleOpen} />
       </div>
       <StateBreakdownTooltip

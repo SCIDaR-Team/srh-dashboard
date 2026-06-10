@@ -101,7 +101,10 @@ export function MetricCard({
           : undefined
       }
       className={[
-        'srh-fade-in srh-surface flex flex-col',
+        // h-full so the card stretches to fill its grid/flex cell — keeps
+        // neighbouring cards in the same row visually equal in length
+        // even when their content has different vertical weight.
+        'srh-fade-in srh-surface flex h-full flex-col',
         isKpi ? 'p-5 pt-[18px]' : 'p-4',
         isKpi ? RAIL_CLASS[tone] : '',
         interactive

@@ -39,12 +39,12 @@ function computePosition(rect: DOMRect): { top: number; left: number } {
   const vw = window.innerWidth
   const vh = window.innerHeight
 
-  // Prefer below the trigger; flip above if there isn't room.
+  // Always position below the trigger. If the viewport is too short for
+  // the popover to fit fully below, pull it up just enough to stay
+  // reachable — but never flip above the trigger.
   let top = rect.bottom + GAP
-  if (top + ESTIMATED_HEIGHT > vh - VIEWPORT_PAD) {
-    const aboveTop = rect.top - ESTIMATED_HEIGHT - GAP
-    top = aboveTop >= VIEWPORT_PAD ? aboveTop : VIEWPORT_PAD
-  }
+  const maxTop = vh - ESTIMATED_HEIGHT - VIEWPORT_PAD
+  if (top > maxTop) top = Math.max(VIEWPORT_PAD, maxTop)
 
   // Align with the trigger's left edge; clamp to viewport on both sides.
   let left = rect.left
