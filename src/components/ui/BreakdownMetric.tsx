@@ -8,7 +8,13 @@
  */
 
 import { useMemo, useState } from 'react'
-import { MetricCard, type SubtitleColor, type MetricSize } from './MetricCard'
+import {
+  MetricCard,
+  type SubtitleColor,
+  type MetricSize,
+  type MetricVariant,
+  type MetricTone,
+} from './MetricCard'
 import { StateBreakdownTooltip } from './StateBreakdownTooltip'
 import { breakdownByState, type Measure } from '../../lib/measures'
 import type { ODKSubmission } from '../../lib/types'
@@ -21,6 +27,8 @@ interface BreakdownMetricProps {
   subtitleColor?: SubtitleColor
   format?: 'number' | 'raw'
   size?: MetricSize
+  variant?: MetricVariant
+  tone?: MetricTone
   icon?: React.ReactNode
 
   // Breakdown wiring

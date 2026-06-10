@@ -1,20 +1,23 @@
 /**
- * MetricCard — compact KPI tile.
+ * MetricCard — KPI tile.
  *
- * Title on top (small, muted, uppercase tracking-wide), big value centred,
- * optional sub-line (MoM delta, percentage label, etc.) under the value.
- * Optional click handler turns the card into a deep-dive launcher and
- * surfaces a "Click to deep dive" hint at the bottom.
+ * Two visual variants:
+ *  - `tile` (default): compact sub-metric. No rail, regular padding.
+ *  - `kpi`: top-level summary. Colored top-rail keyed by `tone`, larger
+ *    value, more breathing room. Use for the headline metrics on a page.
  *
- * The subtle on-mount fade-in is done with a CSS-only utility class rather
- * than a library, to keep the bundle lean.
+ * `tone` controls the rail color on the `kpi` variant: `primary` for
+ * positive program metrics, `accent` for live activity, `warning` for
+ * watch-list metrics (stockout risk, low coverage), `danger` for true
+ * deficits (deaths, hard stockouts), `neutral` for everything else.
  */
 
 import type { ReactNode } from 'react'
 
 export type SubtitleColor = 'green' | 'red' | 'neutral'
-
 export type MetricSize = 'sm' | 'md' | 'lg'
+export type MetricVariant = 'tile' | 'kpi'
+export type MetricTone = 'neutral' | 'primary' | 'accent' | 'warning' | 'danger'
 
 interface MetricCardProps {
   title: string
@@ -24,6 +27,8 @@ interface MetricCardProps {
   /** "raw" prints as-is; "number" formats with locale commas */
   format?: 'number' | 'raw'
   size?: MetricSize
+  variant?: MetricVariant
+  tone?: MetricTone
   onClick?: () => void
   /** Optional icon node rendered top-right */
   icon?: ReactNode
@@ -35,10 +40,18 @@ const SUBTITLE_CLASS: Record<SubtitleColor, string> = {
   neutral: 'text-muted',
 }
 
-const VALUE_CLASS: Record<MetricSize, string> = {
+const VALUE_SIZE: Record<MetricSize, string> = {
   sm: 'text-xl',
-  md: 'text-2xl',
-  lg: 'text-4xl',
+  md: 'text-[26px] leading-[1.1]',
+  lg: 'text-[34px] leading-[1.05]',
+}
+
+const RAIL_CLASS: Record<MetricTone, string> = {
+  neutral: 'srh-rail srh-rail-neutral',
+  primary: 'srh-rail srh-rail-primary',
+  accent: 'srh-rail srh-rail-accent',
+  warning: 'srh-rail srh-rail-warning',
+  danger: 'srh-rail srh-rail-danger',
 }
 
 export function MetricCard({
@@ -48,6 +61,8 @@ export function MetricCard({
   subtitleColor = 'neutral',
   format = 'raw',
   size = 'md',
+  variant = 'tile',
+  tone = 'neutral',
   onClick,
   icon,
 }: MetricCardProps) {
@@ -55,6 +70,7 @@ export function MetricCard({
     format === 'number' && typeof value === 'number' ? value.toLocaleString() : value
 
   const interactive = typeof onClick === 'function'
+  const isKpi = variant === 'kpi'
 
   return (
     <div
@@ -72,29 +88,29 @@ export function MetricCard({
           : undefined
       }
       className={[
-        'srh-fade-in flex flex-col rounded-xl border border-gray-100 bg-card p-4 shadow-sm transition-shadow',
-        interactive ? 'cursor-pointer hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30' : '',
+        'srh-fade-in srh-surface flex flex-col',
+        isKpi ? 'p-5 pt-[18px]' : 'p-4',
+        isKpi ? RAIL_CLASS[tone] : '',
+        interactive
+          ? 'srh-surface-hover cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 focus:ring-offset-page'
+          : '',
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">{title}</p>
+        <p className="srh-label">{title}</p>
         {icon && <span className="text-primary/60">{icon}</span>}
       </div>
 
-      <p
-        className={`mt-2 font-heading font-bold text-ink tabular-nums ${VALUE_CLASS[size]}`}
-      >
-        {display}
-      </p>
+      <p className={`srh-kpi-value mt-2 ${VALUE_SIZE[size]}`}>{display}</p>
 
       {subtitle && (
-        <p className={`mt-1 text-sm font-semibold ${SUBTITLE_CLASS[subtitleColor]}`}>
+        <p className={`mt-1.5 text-[13px] font-semibold ${SUBTITLE_CLASS[subtitleColor]}`}>
           {subtitle}
         </p>
       )}
 
       {interactive && (
-        <p className="mt-3 text-[11px] uppercase tracking-wider text-primary/70">
+        <p className="mt-3 text-[10px] font-medium uppercase tracking-label text-primary/70">
           Click to deep dive →
         </p>
       )}

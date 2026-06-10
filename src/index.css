@@ -42,21 +42,71 @@
 }
 
 @layer components {
-  /* Shared card surface used across the dashboard. */
+  /* Shared card surface (legacy — kept so existing call-sites still work). */
   .srh-card {
     @apply rounded-card bg-card shadow-card border border-black/5;
   }
 
-  /* On-mount fade-in used by MetricCard, SectionCard, modals, drawers.
-     Honours prefers-reduced-motion to skip the animation for users who
-     have requested fewer effects. */
+  /* ───── Surface tokens (Round 1) ────────────────────────────────────
+     L1 resting surface: white card on slate-200 border, no shadow.
+     L2 hover: deeper border + soft shadow. Use `srh-surface-hover` next
+     to `srh-surface` to opt in to the hover treatment. */
+  .srh-surface {
+    @apply rounded-card border border-slate-200 bg-card;
+  }
+  .srh-surface-hover {
+    @apply transition-all duration-150 hover:border-slate-300 hover:shadow-card-hover;
+  }
+
+  /* ───── Colored top-rails for KPI / nav cards ───────────────────────
+     Apply alongside `srh-surface`. The rail replaces the top border
+     visually; the card body keeps its 1px slate border on the other
+     three sides. Use the role-keyed variants below. */
+  .srh-rail {
+    @apply relative;
+  }
+  .srh-rail::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 3px;
+    border-top-left-radius: theme('borderRadius.card');
+    border-top-right-radius: theme('borderRadius.card');
+    background-color: var(--rail-color, theme('colors.slate.300'));
+  }
+  .srh-rail-primary { --rail-color: theme('colors.primary.DEFAULT'); }
+  .srh-rail-accent  { --rail-color: theme('colors.accent.DEFAULT'); }
+  .srh-rail-warning { --rail-color: theme('colors.amber.500'); }
+  .srh-rail-danger  { --rail-color: theme('colors.danger'); }
+  .srh-rail-neutral { --rail-color: theme('colors.slate.300'); }
+
+  /* ───── Section accent rail ────────────────────────────────────────
+     Replaces the heavy light-green strip on SectionCard headers with a
+     quieter vertical rail next to the title. */
+  .srh-section-rail {
+    @apply border-l-[3px] border-primary pl-3;
+  }
+
+  /* ───── Type tokens ────────────────────────────────────────────────
+     Three weights of label/value/title that compose the dashboard's
+     vocabulary. Components in Round 2 will swap to these. */
+  .srh-label {
+    @apply text-[11px] font-medium uppercase tracking-label text-muted;
+  }
+  .srh-kpi-value {
+    @apply font-heading font-bold text-ink tabular-nums tracking-tight;
+  }
+  .srh-section-title {
+    @apply font-heading text-[13px] font-semibold tracking-tight text-ink;
+  }
+
+  /* On-mount fade-in used by MetricCard, SectionCard, modals, drawers. */
   .srh-fade-in {
     animation: srh-fade-in 320ms ease-out both;
   }
 
-  /* Scrollable region without a visible scrollbar. Lets the FilterPanel
-     stay reachable on short viewports without the dashboard chrome
-     showing a scrollbar that competes for attention. */
+  /* Scrollable region without a visible scrollbar. */
   .srh-scroll-hidden {
     scrollbar-width: none;
   }
