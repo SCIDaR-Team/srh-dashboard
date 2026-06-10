@@ -7,7 +7,7 @@
  * computes the per-state bar chart only when opened.
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   MetricCard,
   type SubtitleColor,
@@ -45,9 +45,20 @@ export function BreakdownMetric({
   ...metricProps
 }: BreakdownMetricProps) {
   const [open, setOpen] = useState(false)
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null)
+  // Wraps the MetricCard so we can read its bounding rect at click time
+  // and anchor the popover next to it (rather than centring it in the
+  // viewport).
+  const triggerRef = useRef<HTMLDivElement>(null)
 
-  // Compute the breakdown only when the popover is opened (cheap, but
-  // saves work on the common case of a page with 10 such cards).
+  const handleOpen = () => {
+    if (triggerRef.current) {
+      setAnchorRect(triggerRef.current.getBoundingClientRect())
+    }
+    setOpen(true)
+  }
+
+  // Compute the breakdown only when the popover is opened.
   const data = useMemo(
     () => (open ? breakdownByState(allData, measure) : []),
     [open, allData, measure],
@@ -55,12 +66,15 @@ export function BreakdownMetric({
 
   return (
     <>
-      <MetricCard {...metricProps} onClick={() => setOpen(true)} />
+      <div ref={triggerRef}>
+        <MetricCard {...metricProps} onClick={handleOpen} />
+      </div>
       <StateBreakdownTooltip
         isOpen={open}
         onClose={() => setOpen(false)}
         title={breakdownTitle ?? metricProps.title}
         data={data}
+        anchorRect={anchorRect}
       />
     </>
   )

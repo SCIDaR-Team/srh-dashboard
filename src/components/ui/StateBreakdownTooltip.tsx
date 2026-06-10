@@ -1,17 +1,19 @@
 /**
- * StateBreakdownTooltip — modal popover used when the user clicks a
+ * StateBreakdownTooltip — anchored popover used when the user clicks a
  * metric card to see the value broken down by state.
  *
- * Rendered in a React portal attached to document.body so the modal
+ * Rendered in a React portal attached to document.body so the popover
  * escapes any ancestor `overflow:hidden` / `transform` (the parent
- * SectionCard uses both, which would otherwise clip the modal and hide
+ * SectionCard uses both, which would otherwise clip the popover and hide
  * the close button).
  *
- * Replaces the ~40 hover-only tooltip pages from the original Power BI
- * dashboard with a click-to-drill interaction that's friendlier on touch.
+ * Position is computed from `anchorRect` — the trigger element's
+ * bounding rect at the moment of the click. The popover prefers to sit
+ * below the trigger; if there isn't room, it flips above. Horizontally
+ * it aligns with the trigger's left edge and clamps to the viewport.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { HBarChart } from '../charts/HBarChart'
@@ -21,6 +23,37 @@ interface StateBreakdownTooltipProps {
   title: string
   isOpen: boolean
   onClose: () => void
+  /** Bounding rect of the clicked card. The popover positions itself
+   *  relative to this rather than sitting in the centre of the viewport. */
+  anchorRect: DOMRect | null
+}
+
+const POPOVER_WIDTH = 360
+// Approximate height used only for the above/below flip decision. The
+// actual rendered popover is sized by its content (title + 220px chart).
+const ESTIMATED_HEIGHT = 320
+const GAP = 8
+const VIEWPORT_PAD = 8
+
+function computePosition(rect: DOMRect): { top: number; left: number } {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+
+  // Prefer below the trigger; flip above if there isn't room.
+  let top = rect.bottom + GAP
+  if (top + ESTIMATED_HEIGHT > vh - VIEWPORT_PAD) {
+    const aboveTop = rect.top - ESTIMATED_HEIGHT - GAP
+    top = aboveTop >= VIEWPORT_PAD ? aboveTop : VIEWPORT_PAD
+  }
+
+  // Align with the trigger's left edge; clamp to viewport on both sides.
+  let left = rect.left
+  if (left + POPOVER_WIDTH > vw - VIEWPORT_PAD) {
+    left = vw - POPOVER_WIDTH - VIEWPORT_PAD
+  }
+  if (left < VIEWPORT_PAD) left = VIEWPORT_PAD
+
+  return { top, left }
 }
 
 export function StateBreakdownTooltip({
@@ -28,6 +61,7 @@ export function StateBreakdownTooltip({
   title,
   isOpen,
   onClose,
+  anchorRect,
 }: StateBreakdownTooltipProps) {
   // Esc-to-close.
   useEffect(() => {
@@ -39,21 +73,36 @@ export function StateBreakdownTooltip({
     return () => window.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
 
-  if (!isOpen || typeof document === 'undefined') return null
+  // Close on scroll — the anchor would otherwise drift away from the popover.
+  useEffect(() => {
+    if (!isOpen) return
+    const onScroll = () => onClose()
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    return () => window.removeEventListener('scroll', onScroll, { capture: true })
+  }, [isOpen, onClose])
+
+  const position = useMemo(
+    () => (anchorRect ? computePosition(anchorRect) : null),
+    [anchorRect],
+  )
+
+  if (!isOpen || !position || typeof document === 'undefined') return null
 
   const chartData = data.map((d) => ({ name: d.state, value: d.value }))
 
   return createPortal(
+    // Transparent click-outside catcher — no dark wash, so the chart
+    // underneath stays visible.
     <div
-      className="srh-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl bg-card p-4 shadow-card-hover"
+        className="srh-fade-in absolute flex max-h-[90vh] flex-col overflow-hidden rounded-xl border border-slate-200 bg-card p-4 shadow-card-hover"
+        style={{ top: position.top, left: position.left, width: POPOVER_WIDTH }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-modal="true"
         aria-labelledby="state-breakdown-title"
       >
         <div className="mb-3 flex items-start justify-between gap-3">
