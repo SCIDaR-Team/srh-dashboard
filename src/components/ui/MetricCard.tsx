@@ -54,6 +54,17 @@ const RAIL_CLASS: Record<MetricTone, string> = {
   danger: 'srh-rail srh-rail-danger',
 }
 
+/**
+ * Split a "67% (1,200/1,800)" style string into the headline and the
+ * parenthesised fraction so the fraction can render smaller. Returns
+ * `null` for the fraction when the value has no parenthesised suffix.
+ */
+function splitParenthesised(s: string): { head: string; tail: string | null } {
+  const m = s.match(/^(.+?)\s*\(([^()]+)\)\s*$/)
+  if (!m) return { head: s, tail: null }
+  return { head: m[1].trim(), tail: m[2].trim() }
+}
+
 export function MetricCard({
   title,
   value,
@@ -66,8 +77,10 @@ export function MetricCard({
   onClick,
   icon,
 }: MetricCardProps) {
-  const display =
+  const raw =
     format === 'number' && typeof value === 'number' ? value.toLocaleString() : value
+  const displayStr = typeof raw === 'string' ? raw : String(raw)
+  const { head, tail } = splitParenthesised(displayStr)
 
   const interactive = typeof onClick === 'function'
   const isKpi = variant === 'kpi'
@@ -101,7 +114,14 @@ export function MetricCard({
         {icon && <span className="text-primary/60">{icon}</span>}
       </div>
 
-      <p className={`srh-kpi-value mt-2 ${VALUE_SIZE[size]}`}>{display}</p>
+      <p className={`srh-kpi-value mt-2 ${VALUE_SIZE[size]}`}>
+        {head}
+        {tail && (
+          <span className="ml-1.5 align-middle text-[0.55em] font-semibold text-muted">
+            ({tail})
+          </span>
+        )}
+      </p>
 
       {subtitle && (
         <p className={`mt-1.5 text-[13px] font-semibold ${SUBTITLE_CLASS[subtitleColor]}`}>

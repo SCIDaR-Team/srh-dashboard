@@ -87,12 +87,16 @@ export default function OverviewPage() {
   const ancTotal = totalANCClients(data)
   const ancMom = computeMoMForIndicator(raw, totalANCClients)
   const ancBreakdown = ancByLiveBirth(data)
+  // Slice order matches the 2x2 custom legend below the donut:
+  //   1st visit  | 4th visit
+  //   8th+ visit | None
   const ancDonut = [
-    { name: 'None', value: ancBreakdown.none, color: COLORS.muted },
     { name: '1st visit', value: ancBreakdown.visit1, color: COLORS.rose },
     { name: '4th visit', value: ancBreakdown.visit4, color: COLORS.accent },
     { name: '8th+ visit', value: ancBreakdown.visit8plus, color: COLORS.primary },
+    { name: 'None', value: ancBreakdown.none, color: COLORS.muted },
   ]
+  const ancDonutTotal = ancDonut.reduce((s, d) => s + d.value, 0)
 
   const deliveries = totalDeliveries(data)
   const deliveriesMom = computeMoMForIndicator(raw, totalDeliveries)
@@ -155,59 +159,71 @@ export default function OverviewPage() {
   // ------------------------------------------------------------------------
   return (
     <div className="space-y-6">
-      {/* ===== SECTION 1: Top row — Coverage + Functionality gauges ====== */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <SectionCard title="Coverage">
-          <div className="flex flex-col items-center gap-3">
-            <GaugeChart
-              value={assessed}
-              max={TARGETS.totalFacilities}
-              target={TARGETS.totalFacilities}
-              caption={`of ${TARGETS.totalFacilities} facilities`}
-            />
-            <Link
-              to="/facility-deepdive"
-              className="text-xs font-semibold uppercase tracking-wider text-primary/80 hover:text-primary"
-            >
-              Click to deep dive →
-            </Link>
-          </div>
-        </SectionCard>
+      {/* ===== SECTION 1: Top row — Coverage + Functionality gauges ======
+          12-col grid: Coverage 5 / FF 5 / Reach 2 so the two gauge cards
+          get the bulk of the width and Reach (two compact KPI tiles) sits
+          beside them as a slim rail. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-5">
+          <SectionCard title="Coverage">
+            <div className="flex flex-col items-center gap-3">
+              <GaugeChart
+                value={assessed}
+                max={TARGETS.totalFacilities}
+                target={TARGETS.totalFacilities}
+                size={220}
+                caption={`of ${TARGETS.totalFacilities} facilities`}
+              />
+              <Link
+                to="/facility-deepdive"
+                className="text-xs font-semibold uppercase tracking-wider text-primary/80 hover:text-primary"
+              >
+                Click to deep dive →
+              </Link>
+            </div>
+          </SectionCard>
+        </div>
 
-        <SectionCard title="Facility functionality">
-          <div className="grid grid-cols-2 gap-3">
-            <GaugeChart
-              value={cemoncEmpanelled}
-              max={TARGETS.empanelledCEmONC}
-              size={150}
-              label="CEmONC empanelled"
-              caption={`of ${TARGETS.empanelledCEmONC}`}
-            />
-            <GaugeChart
-              value={bemoncL2}
-              max={TARGETS.revitalizationTarget}
-              size={150}
-              label="L2 BEmONC"
-              caption={`of ${TARGETS.revitalizationTarget}`}
-            />
-          </div>
-        </SectionCard>
+        <div className="lg:col-span-5">
+          <SectionCard title="Facility functionality">
+            <div className="grid grid-cols-2 gap-3">
+              <GaugeChart
+                value={cemoncEmpanelled}
+                max={TARGETS.empanelledCEmONC}
+                size={180}
+                label="CEmONC empanelled"
+                caption={`of ${TARGETS.empanelledCEmONC}`}
+              />
+              <GaugeChart
+                value={bemoncL2}
+                max={TARGETS.revitalizationTarget}
+                size={180}
+                label="L2 BEmONC"
+                caption={`of ${TARGETS.revitalizationTarget}`}
+              />
+            </div>
+          </SectionCard>
+        </div>
 
-        <SectionCard title="Reach">
-          <div className="grid grid-cols-1 gap-3">
-            <MetricCard
-              title="Total clients served"
-              value={formatK(fpTotalValue + gbv + pac)}
-              icon={<Users size={18} />}
-            />
-            <MetricCard
-              title="Adolescents reached"
-              value={formatK(adolescents)}
-              subtitle={adolescentsMom.label}
-              subtitleColor={adolescentsMom.pct >= 0 ? 'green' : 'red'}
-            />
-          </div>
-        </SectionCard>
+        <div className="lg:col-span-2">
+          <SectionCard title="Reach">
+            <div className="grid grid-cols-1 gap-3">
+              <MetricCard
+                title="Total clients served"
+                value={formatK(fpTotalValue + gbv + pac)}
+                size="sm"
+                icon={<Users size={18} />}
+              />
+              <MetricCard
+                title="Adolescents reached"
+                value={formatK(adolescents)}
+                subtitle={adolescentsMom.label}
+                subtitleColor={adolescentsMom.pct >= 0 ? 'green' : 'red'}
+                size="sm"
+              />
+            </div>
+          </SectionCard>
+        </div>
       </div>
 
       {/* ===== SECTION 2: MNH + FP + ASRH ================================ */}
@@ -226,7 +242,29 @@ export default function OverviewPage() {
                 measure={totalANCClients}
               />
               <div className="rounded-xl border border-gray-100 bg-card p-2 shadow-sm">
-                <DonutChart data={ancDonut} size={170} innerRadius={36} />
+                <DonutChart
+                  data={ancDonut}
+                  size={170}
+                  innerRadius={50}
+                  showLegend={false}
+                  centerValue={formatK(ancDonutTotal)}
+                  centerLabel="ANC clients"
+                />
+                {/* Custom 2x2 legend — order matches `ancDonut`:
+                       1st visit  | 4th visit
+                       8th+ visit | None         */}
+                <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 px-2 text-[11px] text-muted">
+                  {ancDonut.map((d) => (
+                    <li key={d.name} className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: d.color }}
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{d.name}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 
@@ -365,8 +403,8 @@ export default function OverviewPage() {
               </div>
               <DonutChart
                 data={fpMethodDonut}
-                size={180}
-                innerRadius={48}
+                size={260}
+                innerRadius={64}
                 centerLabel="clients"
                 centerValue={formatK(
                   fpMethodDonut.reduce((a, b) => a + b.value, 0),
@@ -390,7 +428,7 @@ export default function OverviewPage() {
               breakdownTitle="Adolescent clients"
             />
             <div className="rounded-xl border border-gray-100 bg-card p-3 shadow-sm">
-              <HBarChart data={asrhBars} height={220} showValues />
+              <HBarChart data={asrhBars} height={360} showValues />
             </div>
           </div>
         </SectionCard>
