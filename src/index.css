@@ -106,6 +106,22 @@
     animation: srh-fade-in 320ms ease-out both;
   }
 
+  /* Standard focus ring — primary green, soft offset against page bg.
+     Apply to interactives that don't already carry a dedicated ring
+     (e.g. TopNav links, Home nav cards). Skip on selects/inputs which
+     have their own field-specific ring. */
+  .srh-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-page;
+  }
+
+  /* Value-change pulse — soft accent flash on the KPI value when it
+     remounts (e.g. when filters change the underlying number). Driven
+     by a `key` prop on the value node in MetricCard, so this animation
+     replays whenever the displayed string changes. */
+  .srh-pulse {
+    animation: srh-pulse 640ms ease-out both;
+  }
+
   /* Scrollable region without a visible scrollbar. */
   .srh-scroll-hidden {
     scrollbar-width: none;
@@ -115,7 +131,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .srh-fade-in {
+    .srh-fade-in,
+    .srh-pulse {
       animation: none;
     }
   }
@@ -129,5 +146,17 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes srh-pulse {
+  /* Soft accent flash that resolves back to the original ink colour.
+     Uses inherit at the start so the animation works regardless of the
+     element's natural colour (ink, muted, danger, etc.). */
+  0% {
+    color: theme('colors.accent.DEFAULT');
+  }
+  100% {
+    color: inherit;
   }
 }

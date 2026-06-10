@@ -66,7 +66,7 @@ export function TopNav({ onOpenFilters }: TopNavProps) {
               end={page.path === '/'}
               className={({ isActive }) =>
                 [
-                  'relative whitespace-nowrap px-2 py-3 text-[13px] font-medium transition-colors xl:px-2.5',
+                  'srh-focus relative whitespace-nowrap rounded-sm px-2 py-3 text-[13px] font-medium transition-colors xl:px-2.5',
                   isActive ? 'text-primary' : 'text-muted hover:text-ink',
                 ].join(' ')
               }

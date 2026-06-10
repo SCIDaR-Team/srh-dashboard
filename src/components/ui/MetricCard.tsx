@@ -117,7 +117,13 @@ export function MetricCard({
         {icon && <span className="text-primary/60">{icon}</span>}
       </div>
 
-      <p className={`srh-kpi-value mt-2 ${VALUE_SIZE[size]}`}>
+      {/* `key={displayStr}` remounts this element whenever the displayed
+          value changes — pairs with the `srh-pulse` animation to give a
+          soft visual cue when a filter narrows or widens the KPI. */}
+      <p
+        key={displayStr}
+        className={`srh-kpi-value srh-pulse mt-2 ${VALUE_SIZE[size]}`}
+      >
         {head}
         {tail && (
           <span className="ml-1.5 align-middle text-[0.55em] font-semibold text-muted">
