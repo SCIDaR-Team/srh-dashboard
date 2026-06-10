@@ -161,6 +161,7 @@ export default function ServiceDeliveryPage() {
                   innerRadius={50}
                   centerValue={formatK(ancTotal)}
                   centerLabel="women"
+                  showHover={false}
                 />
               )}
             </SectionCard>
@@ -285,6 +286,7 @@ export default function ServiceDeliveryPage() {
                     showLegend={false}
                     centerLabel="medical / surgical"
                     centerValue={formatK(pac)}
+                    showHover={false}
                   />
                 )}
               </div>

@@ -81,14 +81,14 @@ export default function TrendAnalysisPage() {
       <SectionCard title={`Trend — ${indicator}`}>
         {trend.length === 0 ? (
           <ChartEmpty
-            height={560}
+            height={350}
             variant="area"
             label={`No data for ${indicator} in the current scope.`}
           />
         ) : (
           <AreaChartComponent
             data={trend}
-            height={560}
+            height={350}
             showDataLabels={trend.length <= 12}
             title={`${indicator} · monthly`}
           />

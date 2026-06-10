@@ -235,8 +235,8 @@ export default function OverviewPage() {
               <div className="rounded-xl border border-gray-100 bg-card p-2 shadow-sm">
                 <DonutChart
                   data={ancDonut}
-                  size={170}
-                  innerRadius={50}
+                  size={220}
+                  innerRadius={60}
                   showLegend={false}
                   centerValue={formatK(ancDonutTotal)}
                   centerLabel="ANC clients"

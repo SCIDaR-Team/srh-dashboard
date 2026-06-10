@@ -27,6 +27,8 @@ interface DonutChartProps {
   centerLabel?: string
   centerValue?: string
   showLegend?: boolean
+  /** Show tooltip on hover (default true) */
+  showHover?: boolean
 }
 
 const RADIAN = Math.PI / 180
@@ -52,6 +54,7 @@ export function DonutChart({
   centerLabel,
   centerValue,
   showLegend = true,
+  showHover = true,
 }: DonutChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
@@ -104,7 +107,7 @@ export function DonutChart({
               />
             ))}
           </Pie>
-          <Tooltip content={<ChartTooltip />} />
+          {showHover && <Tooltip content={<ChartTooltip />} />}
           {showLegend && (
             <Legend
               verticalAlign="bottom"
@@ -118,7 +121,6 @@ export function DonutChart({
       {(centerValue || centerLabel) && (
         <div
           className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1"
-          style={{ top: showLegend ? '-12%' : 0 }}
         >
           {centerValue && (
             <span className="srh-kpi-value text-[26px] leading-[1.05]">
