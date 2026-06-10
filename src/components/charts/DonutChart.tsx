@@ -5,10 +5,10 @@
  * common "73% (1,204 clients)" pattern. External labels show count + %.
  */
 
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts'
 import type { PieLabelRenderProps } from 'recharts'
 import { CHART_SERIES_COLORS } from '../../lib/constants'
-import { CHART_LEGEND_STYLE, ChartTooltip, ChartEmpty } from '../../lib/chartTheme'
+import { CHART_LEGEND_STYLE, ChartEmpty } from '../../lib/chartTheme'
 
 export interface DonutDatum {
   name: string
@@ -27,8 +27,6 @@ interface DonutChartProps {
   centerLabel?: string
   centerValue?: string
   showLegend?: boolean
-  /** Show tooltip on hover (default true) */
-  showHover?: boolean
 }
 
 const RADIAN = Math.PI / 180
@@ -54,7 +52,6 @@ export function DonutChart({
   centerLabel,
   centerValue,
   showLegend = true,
-  showHover = true,
 }: DonutChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
@@ -62,25 +59,75 @@ export function DonutChart({
     return <ChartEmpty height={size} variant="donut" />
   }
 
-  // Per-slice value drawn at the mid-radius of the ring (no leader lines, so
-  // it never overflows the container or collides with the legend/centre).
+  // Per-slice value: drawn inside at the mid-radius when the arc is wide
+  // enough; otherwise drawn outside with a short leader line so thin slices
+  // (e.g. 4th visit, None) remain readable without distorting the donut.
   const renderSliceValue = (props: PieLabelRenderProps) => {
-    const { cx = 0, cy = 0, midAngle = 0, innerRadius: ir = 0, outerRadius: or = 0, percent = 0, value = 0, fill = '#FFF' } = props
-    if (!percent || percent < 0.04) return null
-    const r = ir + (or - ir) / 2
-    const x = cx + r * Math.cos(-midAngle * RADIAN)
-    const y = cy + r * Math.sin(-midAngle * RADIAN)
+    const cx = Number(props.cx ?? 0)
+    const cy = Number(props.cy ?? 0)
+    const midAngle = Number(props.midAngle ?? 0)
+    const ir = Number(props.innerRadius ?? 0)
+    const or = Number(props.outerRadius ?? 0)
+    const percent = Number(props.percent ?? 0)
+    const value = Number(props.value ?? 0)
+    const fill = (props.fill as string | undefined) ?? '#FFF'
+    if (!percent) return null
+
+    const text = value.toLocaleString()
+    const fontSize = 12
+    // Rough text-width estimate (avg glyph ~0.6em for digits/comma).
+    const approxTextWidth = text.length * fontSize * 0.6
+    const midR = ir + (or - ir) / 2
+    const arcLen = 2 * Math.PI * midR * percent
+    const cos = Math.cos(-midAngle * RADIAN)
+    const sin = Math.sin(-midAngle * RADIAN)
+
+    if (arcLen >= approxTextWidth + 4) {
+      const x = cx + midR * cos
+      const y = cy + midR * sin
+      return (
+        <text
+          x={x}
+          y={y}
+          fill={readableOn(fill)}
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ fontSize, fontWeight: 700 }}
+        >
+          {text}
+        </text>
+      )
+    }
+
+    // External label with a short leader line.
+    const sx = cx + or * cos
+    const sy = cy + or * sin
+    const mx = cx + (or + 8) * cos
+    const my = cy + (or + 8) * sin
+    const horizDir = cos >= 0 ? 1 : -1
+    const ex = mx + horizDir * 10
+    const ey = my
+    const textAnchor = horizDir === 1 ? 'start' : 'end'
+
     return (
-      <text
-        x={x}
-        y={y}
-        fill={readableOn(fill)}
-        textAnchor="middle"
-        dominantBaseline="central"
-        style={{ fontSize: 12, fontWeight: 700 }}
-      >
-        {Number(value).toLocaleString()}
-      </text>
+      <g>
+        <path
+          d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+          stroke={fill}
+          strokeWidth={1}
+          fill="none"
+        />
+        <text
+          x={ex + horizDir * 2}
+          y={ey}
+          fill="#1A1A1A"
+          textAnchor={textAnchor}
+          dominantBaseline="central"
+          style={{ fontSize, fontWeight: 700 }}
+        >
+          {text}
+        </text>
+      </g>
     )
   }
 
@@ -107,7 +154,6 @@ export function DonutChart({
               />
             ))}
           </Pie>
-          {showHover && <Tooltip content={<ChartTooltip />} />}
           {showLegend && (
             <Legend
               verticalAlign="bottom"

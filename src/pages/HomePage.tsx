@@ -146,7 +146,7 @@ export default function HomePage() {
             Sexual and Reproductive Health (SRH) Program Dashboard
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-light-green/90 sm:text-[15px]">
-            Provide a comprehensive view of program implementation, service
+            Provides a comprehensive view of program implementation, service
             delivery performance, commodity security, and governance commitments
             across participating states.
           </p>
