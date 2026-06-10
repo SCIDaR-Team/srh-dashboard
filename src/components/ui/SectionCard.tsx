@@ -23,6 +23,9 @@ interface SectionCardProps {
   onClick?: () => void
   /** Optional element rendered on the right of the header (e.g. a slicer). */
   action?: ReactNode
+  /** Extra classes on the root <section> (e.g. `flex-1` to stretch in a
+   *  flex column so the card aligns its bottom edge with a taller sibling). */
+  className?: string
 }
 
 const RAIL_COLOR: Record<SectionTone, string> = {
@@ -39,6 +42,7 @@ export function SectionCard({
   children,
   onClick,
   action,
+  className = '',
 }: SectionCardProps) {
   const interactive = typeof onClick === 'function'
 
@@ -47,6 +51,7 @@ export function SectionCard({
       className={[
         'srh-fade-in srh-surface overflow-hidden',
         interactive ? 'srh-surface-hover cursor-pointer' : '',
+        className,
       ].join(' ')}
       onClick={onClick}
     >

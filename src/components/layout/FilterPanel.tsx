@@ -18,7 +18,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { CalendarRange, MapPin, Building2, Search, RotateCcw, X } from 'lucide-react'
 import { useFilterStore, ALL } from '../../store/filterStore'
-import { STATE_LIST } from '../../lib/constants'
+import { STATE_LIST, FACILITY_TYPES } from '../../lib/constants'
 import { useODKData } from '../../hooks/useODKData'
 import { useFilteredData } from '../../hooks/useFilteredData'
 
@@ -43,8 +43,13 @@ interface FilterPanelProps {
 // `text-white` colours the SELECTED value on the dark sidebar. The
 // `[&>option]:` arbitrary variant forces dropdown <option> elements back
 // to dark-text-on-white so they stay readable when the OS popup opens.
+// `accent-color` retints the browser's native option-highlight from its
+// default blue toward the brand green; `[&>option:checked]` is the CSS
+// fallback that paints the selected row light-green where the engine honours
+// it. `truncate`/`max-w-full` keep long values (e.g. facility names) clipped
+// to the sidebar width instead of widening the control.
 const SELECT_CLASS =
-  'w-full min-w-0 rounded-md border border-white/15 bg-white/10 px-2 py-1.5 text-[13px] text-white placeholder-white/50 transition-colors hover:border-white/25 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 [&>option]:bg-card [&>option]:text-ink'
+  'w-full min-w-0 max-w-full truncate rounded-md border border-white/15 bg-white/10 px-2 py-1.5 text-[13px] text-white placeholder-white/50 transition-colors hover:border-white/25 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 [accent-color:#00A859] [&>option]:bg-card [&>option]:text-ink [&>option:checked]:bg-light-green [&>option:checked]:text-primary'
 
 const LABEL_CLASS =
   'flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-label text-white/70'
@@ -69,9 +74,18 @@ export function FilterPanel({
 
   // Fall backs when no ODK data is loaded yet.
   const states = availableStates.length > 0 ? availableStates : [...STATE_LIST]
-  const types = availableFacilityTypes.length > 0 ? availableFacilityTypes : ['BEmONC', 'CEmONC']
+  const types =
+    availableFacilityTypes.length > 0 ? availableFacilityTypes : [...FACILITY_TYPES]
   const fallbackMonths = useMemo(() => lastTwelveMonths(), [])
-  const months = availableMonths.length > 0 ? availableMonths : fallbackMonths
+  // "YYYY-MM" strings sort lexicographically == chronologically; newest
+  // first to match the calendar fallback.
+  const months = useMemo(
+    () =>
+      [...(availableMonths.length > 0 ? availableMonths : fallbackMonths)].sort(
+        (a, b) => b.localeCompare(a),
+      ),
+    [availableMonths, fallbackMonths],
+  )
 
   const lgaEmptyHint = availableLGAs.length === 0
   const facilityEmptyHint = availableFacilities.length === 0
@@ -114,7 +128,7 @@ export function FilterPanel({
         </div>
         {activeCount > 0 && !isDrawer && (
           <span
-            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"
+            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-semibold text-primary"
             aria-label={`${activeCount} active filter${activeCount === 1 ? '' : 's'}`}
           >
             {activeCount}

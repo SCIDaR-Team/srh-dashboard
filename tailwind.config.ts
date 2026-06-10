@@ -31,13 +31,13 @@ const config: Config = {
         // without competing with true deficits in red.
         danger: '#DC2626', // deficits, deaths, hard stockouts (slightly desaturated from #E52834)
         amber: {
-          DEFAULT: '#F59E0B',
+          DEFAULT: '#E0950B',
           50: '#FFFBEB',
-          500: '#F59E0B',
-          600: '#D97706',
+          500: '#E0950B',
+          600: '#C57F08',
         },
-        rose: '#FFC0CB', // legacy — kept for existing chart palettes
-        warning: '#FFE4B5', // legacy — kept for existing chart palettes
+        rose: '#F2536D', // strengthened from pale #FFC0CB for legibility
+        warning: '#E0950B', // deepened amber — visible on white, still calm
 
         // Text
         ink: '#1A1A1A',

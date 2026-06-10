@@ -101,8 +101,8 @@ export default function DemandGenerationPage() {
           ) : (
             <DonutChart
               data={breakdownDonut}
-              size={260}
-              innerRadius={60}
+              size={360}
+              innerRadius={84}
               centerValue={formatK(totalReceived)}
               centerLabel="clients"
             />
@@ -115,7 +115,7 @@ export default function DemandGenerationPage() {
               No referrals recorded for the current scope.
             </p>
           ) : (
-            <GroupedBarChart data={referralBars} height={280} />
+            <GroupedBarChart data={referralBars} height={360} />
           )}
         </SectionCard>
       </div>

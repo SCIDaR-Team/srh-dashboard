@@ -50,7 +50,7 @@ export function TopNav({ onOpenFilters }: TopNavProps) {
           <p className="truncate font-heading text-sm font-bold text-ink">
             SRH Dashboard
           </p>
-          <p className="truncate text-[10px] uppercase tracking-wider text-muted">
+          <p className="truncate text-[9px] uppercase tracking-normal text-muted">
             Program Implementation
           </p>
         </div>

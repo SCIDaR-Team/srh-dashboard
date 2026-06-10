@@ -20,17 +20,43 @@ interface DonutChartProps {
   size?: number
   /** inner radius in pixels (default 50, controls thickness) */
   innerRadius?: number
+  /** Draw each slice's value on the slice (default true) so users don't
+   *  have to hover. Slivers under 4% are skipped to avoid clutter. */
   showLabels?: boolean
   centerLabel?: string
   centerValue?: string
   showLegend?: boolean
 }
 
+const RADIAN = Math.PI / 180
+
+/** Pick ink or white text for legibility against a slice fill, by luminance. */
+function readableOn(hex: string): string {
+  const c = hex.replace('#', '')
+  if (c.length < 6) return '#FFFFFF'
+  const r = parseInt(c.slice(0, 2), 16)
+  const g = parseInt(c.slice(2, 4), 16)
+  const b = parseInt(c.slice(4, 6), 16)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return lum > 0.62 ? '#1A1A1A' : '#FFFFFF'
+}
+
+interface SliceLabelProps {
+  cx: number
+  cy: number
+  midAngle: number
+  innerRadius: number
+  outerRadius: number
+  percent: number
+  value: number
+  fill: string
+}
+
 export function DonutChart({
   data,
   size = 220,
   innerRadius = 50,
-  showLabels = false,
+  showLabels = true,
   centerLabel,
   centerValue,
   showLegend = true,
@@ -41,12 +67,26 @@ export function DonutChart({
     return <ChartEmpty height={size} variant="donut" />
   }
 
-  // Recharts' PieLabelRenderProps types `name`/`value` as optional; coerce.
-  const renderLabel = (props: { name?: string | number; value?: number }) => {
-    const name = String(props.name ?? '')
-    const value = Number(props.value ?? 0)
-    const pct = total === 0 ? 0 : Math.round((value / total) * 100)
-    return `${name}: ${value.toLocaleString()} (${pct}%)`
+  // Per-slice value drawn at the mid-radius of the ring (no leader lines, so
+  // it never overflows the container or collides with the legend/centre).
+  const renderSliceValue = (props: SliceLabelProps) => {
+    const { cx, cy, midAngle, innerRadius: ir, outerRadius: or, percent, value, fill } = props
+    if (!percent || percent < 0.04) return null
+    const r = ir + (or - ir) / 2
+    const x = cx + r * Math.cos(-midAngle * RADIAN)
+    const y = cy + r * Math.sin(-midAngle * RADIAN)
+    return (
+      <text
+        x={x}
+        y={y}
+        fill={readableOn(fill)}
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{ fontSize: 12, fontWeight: 700 }}
+      >
+        {Number(value).toLocaleString()}
+      </text>
+    )
   }
 
   return (
@@ -61,8 +101,8 @@ export function DonutChart({
             outerRadius={Math.max(innerRadius + 20, size / 2 - 20)}
             paddingAngle={2}
             stroke="none"
-            label={showLabels ? renderLabel : false}
-            labelLine={showLabels}
+            label={showLabels ? renderSliceValue : false}
+            labelLine={false}
             isAnimationActive
           >
             {data.map((entry, i) => (

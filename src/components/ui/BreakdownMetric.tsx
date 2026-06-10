@@ -7,7 +7,7 @@
  * computes the per-state bar chart only when opened.
  */
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   MetricCard,
   type SubtitleColor,
@@ -46,17 +46,35 @@ export function BreakdownMetric({
 }: BreakdownMetricProps) {
   const [open, setOpen] = useState(false)
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null)
-  // Wraps the MetricCard so we can read its bounding rect at click time
-  // and anchor the popover next to it (rather than centring it in the
-  // viewport).
+  // Wraps the MetricCard so we can read its bounding rect when opening and
+  // anchor the popover next to it (rather than centring it in the viewport).
   const triggerRef = useRef<HTMLDivElement>(null)
+  // Small grace period so moving the cursor from the card across the gap to
+  // the popover doesn't close it; hovering either one cancels the timer.
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }
 
   const handleOpen = () => {
+    cancelClose()
     if (triggerRef.current) {
       setAnchorRect(triggerRef.current.getBoundingClientRect())
     }
     setOpen(true)
   }
+
+  const scheduleClose = () => {
+    cancelClose()
+    closeTimer.current = setTimeout(() => setOpen(false), 140)
+  }
+
+  // Clear any pending timer on unmount.
+  useEffect(() => cancelClose, [])
 
   // Compute the breakdown only when the popover is opened.
   const data = useMemo(
@@ -66,12 +84,20 @@ export function BreakdownMetric({
 
   return (
     <>
-      <div ref={triggerRef} className="h-full">
+      <div
+        ref={triggerRef}
+        className="h-full"
+        onMouseEnter={handleOpen}
+        onMouseLeave={scheduleClose}
+      >
+        {/* Click/tap still opens it (touch devices have no hover). */}
         <MetricCard {...metricProps} onClick={handleOpen} />
       </div>
       <StateBreakdownTooltip
         isOpen={open}
         onClose={() => setOpen(false)}
+        onMouseEnter={cancelClose}
+        onMouseLeave={scheduleClose}
         title={breakdownTitle ?? metricProps.title}
         data={data}
         anchorRect={anchorRect}

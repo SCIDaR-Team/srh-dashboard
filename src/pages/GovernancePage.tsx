@@ -22,6 +22,9 @@ const yesNoDonut = ({ yes, no }: { yes: number; no: number }) => [
   { name: 'No', value: no, color: COLORS.rose },
 ]
 
+const donutTotal = (d: { value: number }[]) =>
+  d.reduce((sum, x) => sum + x.value, 0).toLocaleString()
+
 export default function GovernancePage() {
   useDocumentTitle('Governance')
   const { data: raw } = useODKData()
@@ -64,6 +67,8 @@ export default function GovernancePage() {
               size={180}
               innerRadius={50}
               showLegend
+              centerLabel="Total"
+              centerValue={donutTotal(yesNoDonut(m.bhcpfReceivedDonut))}
             />
           </SubCard>
           <SubCard title="In full amount">
@@ -72,6 +77,8 @@ export default function GovernancePage() {
               size={180}
               innerRadius={50}
               showLegend
+              centerLabel="Total"
+              centerValue={donutTotal(yesNoDonut(m.bhcpfFullDonut))}
             />
           </SubCard>
           <SubCard title="Within timeline">
@@ -80,6 +87,8 @@ export default function GovernancePage() {
               size={180}
               innerRadius={50}
               showLegend
+              centerLabel="Total"
+              centerValue={donutTotal(yesNoDonut(m.bhcpfOnTimeDonut))}
             />
           </SubCard>
         </div>

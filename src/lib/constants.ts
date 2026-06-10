@@ -24,9 +24,9 @@ export const COLORS = {
   accent: '#00A859',
   lightGreen: '#E8F5E9',
   danger: '#DC2626', // refined: was #E52834; quieter next to amber
-  amber: '#F59E0B', // new: stockout risk, low-coverage warnings
-  rose: '#FFC0CB',
-  warning: '#FFE4B5',
+  amber: '#E0950B', // deepened amber — visible on white, still calm (stockout risk)
+  rose: '#F2536D', // strengthened from pale #FFC0CB — legible negative/"No"/gap
+  warning: '#E0950B', // deepened amber — visible on white, still calm ("Ongoing")
   ink: '#1A1A1A',
   muted: '#6B7280',
   card: '#FFFFFF',
@@ -48,7 +48,7 @@ export const CHART_SERIES_COLORS = [
   '#00A859',
   '#4FB286',
   '#8FD3B6',
-  '#F59E0B',
+  '#E0950B',
   '#3B82F6',
   '#DC2626',
   '#64748B',
@@ -101,6 +101,13 @@ export const STATE_LIST = [
 ] as const
 
 export type SRHState = (typeof STATE_LIST)[number]
+
+// --- Facility types --------------------------------------------------------
+//
+// The program recognises exactly two facility types. The live ODK feed can
+// occasionally carry a stray/uncanonical `facility_type` value; the facility
+// type dropdown is whitelisted to these so only valid options surface.
+export const FACILITY_TYPES = ['BEmONC', 'CEmONC'] as const
 
 // --- Commodity master list (19 commodities) --------------------------------
 //

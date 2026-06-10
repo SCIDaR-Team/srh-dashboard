@@ -178,8 +178,10 @@ export default function ServiceDeliveryPage() {
           </div>
         </div>
 
-        {/* FP + Stock-out risk — right column */}
-        <div className="space-y-4 xl:col-span-5">
+        {/* FP + Stock-out risk — right column. Flex column so the stock-out
+            card can stretch (flex-1) and bottom-align with the taller left
+            column. */}
+        <div className="flex flex-col gap-4 xl:col-span-5">
           <SectionCard title="Family planning — method mix">
             <div className="space-y-3">
               <MetricCard
@@ -193,7 +195,11 @@ export default function ServiceDeliveryPage() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Facilities at risk of stock-out" tone="warning">
+          <SectionCard
+            title="Facilities at risk of stock-out"
+            tone="warning"
+            className="flex-1"
+          >
             <div className="grid grid-cols-3 gap-3">
               <MetricCard
                 title="No stock"

@@ -166,7 +166,7 @@ export default function OverviewPage() {
             <GaugeChart
               value={assessed}
               max={TARGETS.totalFacilities}
-              target={TARGETS.totalFacilities}
+              strokeWidth={26}
               caption={`of ${TARGETS.totalFacilities} facilities`}
             />
             <Link
@@ -179,11 +179,12 @@ export default function OverviewPage() {
         </SectionCard>
 
         <SectionCard title="Facility functionality">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 justify-items-center gap-3">
             <GaugeChart
               value={cemoncEmpanelled}
               max={TARGETS.empanelledCEmONC}
               size={150}
+              strokeWidth={26}
               label="CEmONC empanelled"
               caption={`of ${TARGETS.empanelledCEmONC}`}
             />
@@ -191,6 +192,7 @@ export default function OverviewPage() {
               value={bemoncL2}
               max={TARGETS.revitalizationTarget}
               size={150}
+              strokeWidth={26}
               label="L2 BEmONC"
               caption={`of ${TARGETS.revitalizationTarget}`}
             />
@@ -223,6 +225,7 @@ export default function OverviewPage() {
               <BreakdownMetric
                 title="ANC clients"
                 value={formatK(ancTotal)}
+                size="lg"
                 subtitle={ancMom.label}
                 subtitleColor={ancMom.pct >= 0 ? 'green' : 'red'}
                 icon={<HeartPulse size={18} />}
@@ -271,12 +274,14 @@ export default function OverviewPage() {
                 value={vaginalPctLabel(data)}
                 size="sm"
                 format="raw"
+                fractionBelow
               />
               <MetricCard
                 title="C-section"
                 value={cSectionPctLabel(data)}
                 size="sm"
                 format="raw"
+                fractionBelow
               />
             </div>
 
@@ -316,13 +321,6 @@ export default function OverviewPage() {
                 />
               </div>
             </SectionCard>
-
-            <Link
-              to="/service-delivery"
-              className="block text-xs font-semibold uppercase tracking-wider text-primary/80 hover:text-primary"
-            >
-              Click here to deep dive →
-            </Link>
           </div>
         </SectionCard>
 

@@ -68,6 +68,8 @@ export default function FacilityFunctionalityPage() {
     { name: 'Partially', value: m.equipmentDistributionStatus.PartiallyReceived, color: COLORS.warning },
     { name: 'Not received', value: m.equipmentDistributionStatus.NotReceived, color: COLORS.rose },
   ]
+  const donutTotal = (d: { value: number }[]) =>
+    d.reduce((sum, x) => sum + x.value, 0).toLocaleString()
 
   // --- HBar sources -------------------------------------------------------
   const staffBars = [
@@ -98,7 +100,8 @@ export default function FacilityFunctionalityPage() {
             <GaugeChart
               value={m.totalAssessedBEmONC}
               max={TARGETS.assessedBEmONC}
-              target={TARGETS.assessedBEmONC}
+              strokeWidth={26}
+              valueFontSize={40}
               label="Assessed BEmONCs"
               caption={`of ${TARGETS.assessedBEmONC}`}
             />
@@ -107,6 +110,7 @@ export default function FacilityFunctionalityPage() {
             <MetricCard
               title="Total CEmONC HWs"
               value={formatK(m.totalCEmONCHWs)}
+              size="lg"
               subtitle={hwMom.label}
               subtitleColor={hwMom.pct >= 0 ? 'green' : 'red'}
               icon={<Users size={18} />}
@@ -116,7 +120,14 @@ export default function FacilityFunctionalityPage() {
             <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
               BEmONCs by SBA count
             </p>
-            <DonutChart data={sbaDonut} size={180} innerRadius={42} showLegend />
+            <DonutChart
+              data={sbaDonut}
+              size={180}
+              innerRadius={42}
+              showLegend
+              centerLabel="Total"
+              centerValue={donutTotal(sbaDonut)}
+            />
           </div>
           <div className="rounded-xl border border-gray-100 bg-card p-3 shadow-sm lg:col-span-3">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
@@ -128,35 +139,56 @@ export default function FacilityFunctionalityPage() {
       </SectionCard>
 
       {/* ===== Infrastructure, equipment & commodities ================== */}
+      {/* Target-count cards and the status donuts are shown WITHOUT values
+          ("----" / no labels) — the underlying datasets are not yet
+          validated. The TARGETS constants + measures are retained. */}
       <SectionCard title="Infrastructure, equipment & commodities">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <MetricCard
             title="BEmONC prioritized for revitalization"
-            value={formatK(TARGETS.revitalizationTarget)}
+            value="----"
             size="sm"
             icon={<Building2 size={16} />}
           />
           <MetricCard
             title="Commodity distribution target"
-            value={formatK(TARGETS.commodityDistribution)}
+            value="----"
             size="sm"
           />
           <MetricCard
             title="Equipment distribution target"
-            value={formatK(TARGETS.equipmentTarget)}
+            value="----"
             size="sm"
           />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <SubCard title="Revitalization status">
-            <DonutChart data={revitalDonut} size={200} innerRadius={48} showLegend />
+            <DonutChart
+              data={revitalDonut}
+              size={200}
+              innerRadius={48}
+              showLegend
+              showLabels={false}
+            />
           </SubCard>
           <SubCard title="Commodity distribution">
-            <DonutChart data={commodityDistDonut} size={200} innerRadius={48} showLegend />
+            <DonutChart
+              data={commodityDistDonut}
+              size={200}
+              innerRadius={48}
+              showLegend
+              showLabels={false}
+            />
           </SubCard>
           <SubCard title="Equipment distribution">
-            <DonutChart data={equipmentDistDonut} size={200} innerRadius={48} showLegend />
+            <DonutChart
+              data={equipmentDistDonut}
+              size={200}
+              innerRadius={48}
+              showLegend
+              showLabels={false}
+            />
           </SubCard>
         </div>
 

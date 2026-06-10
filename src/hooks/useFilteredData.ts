@@ -11,6 +11,7 @@
 
 import { useMemo } from 'react'
 import { useFilterStore, ALL } from '../store/filterStore'
+import { FACILITY_TYPES } from '../lib/constants'
 import type { ODKSubmission } from '../lib/types'
 
 export interface FilteredDataResult {
@@ -54,8 +55,13 @@ export function useFilteredData(raw: ODKSubmission[]): FilteredDataResult {
     const availableFacilities = distinctSorted(lgaScope.map((r) => r.facility_name))
 
     // Facility types and reporting months don't cascade — they're always
-    // computed against the whole dataset.
-    const availableFacilityTypes = distinctSorted(raw.map((r) => r.facility_type))
+    // computed against the whole dataset. Types are whitelisted to the two
+    // canonical values so a stray ODK `facility_type` never surfaces in the
+    // dropdown.
+    const facilityTypeWhitelist = new Set<string>(FACILITY_TYPES)
+    const availableFacilityTypes = distinctSorted(
+      raw.map((r) => r.facility_type),
+    ).filter((t) => facilityTypeWhitelist.has(t))
     const availableMonths = distinctSorted(raw.map((r) => r.Reporting_month))
 
     const data = raw.filter(

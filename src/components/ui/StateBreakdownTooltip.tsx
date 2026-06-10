@@ -1,6 +1,6 @@
 /**
- * StateBreakdownTooltip — anchored popover used when the user clicks a
- * metric card to see the value broken down by state.
+ * StateBreakdownTooltip — anchored popover that appears when the user hovers
+ * (or taps, on touch) a metric card, showing the value broken down by state.
  *
  * Rendered in a React portal attached to document.body so the popover
  * escapes any ancestor `overflow:hidden` / `transform` (the parent
@@ -26,6 +26,9 @@ interface StateBreakdownTooltipProps {
   /** Bounding rect of the clicked card. The popover positions itself
    *  relative to this rather than sitting in the centre of the viewport. */
   anchorRect: DOMRect | null
+  /** Hover bridge: keep the popover open while the cursor is on it. */
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
 }
 
 const POPOVER_WIDTH = 360
@@ -62,6 +65,8 @@ export function StateBreakdownTooltip({
   isOpen,
   onClose,
   anchorRect,
+  onMouseEnter,
+  onMouseLeave,
 }: StateBreakdownTooltipProps) {
   // Esc-to-close.
   useEffect(() => {
@@ -91,17 +96,16 @@ export function StateBreakdownTooltip({
   const chartData = data.map((d) => ({ name: d.state, value: d.value }))
 
   return createPortal(
-    // Transparent click-outside catcher — no dark wash, so the chart
-    // underneath stays visible.
-    <div
-      className="fixed inset-0 z-50"
-      onClick={onClose}
-      role="presentation"
-    >
+    // Full-screen layer is pointer-events-none so it never intercepts hover
+    // (which would close the card the instant the popover opened); only the
+    // popover box re-enables pointer events. Close is driven by hover-out /
+    // Esc / scroll instead of click-outside.
+    <div className="pointer-events-none fixed inset-0 z-50" role="presentation">
       <div
-        className="srh-fade-in absolute flex max-h-[90vh] flex-col overflow-hidden rounded-xl border border-slate-200 bg-card p-4 shadow-card-hover"
+        className="srh-fade-in pointer-events-auto absolute flex max-h-[90vh] flex-col overflow-hidden rounded-xl border border-slate-200 bg-card p-4 shadow-card-hover"
         style={{ top: position.top, left: position.left, width: POPOVER_WIDTH }}
-        onClick={(e) => e.stopPropagation()}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         role="dialog"
         aria-labelledby="state-breakdown-title"
       >

@@ -15,7 +15,7 @@
 import type { ReactNode } from 'react'
 
 export type SubtitleColor = 'green' | 'red' | 'neutral'
-export type MetricSize = 'sm' | 'md' | 'lg'
+export type MetricSize = 'sm' | 'md' | 'lg' | 'xl'
 export type MetricVariant = 'tile' | 'kpi'
 export type MetricTone = 'neutral' | 'primary' | 'accent' | 'warning' | 'danger'
 
@@ -32,6 +32,9 @@ interface MetricCardProps {
   onClick?: () => void
   /** Optional icon node rendered top-right */
   icon?: ReactNode
+  /** Render the parenthesised fraction on its own line below the value
+   *  (slightly larger than the inline superscript, still sub-headline). */
+  fractionBelow?: boolean
 }
 
 const SUBTITLE_CLASS: Record<SubtitleColor, string> = {
@@ -44,6 +47,17 @@ const VALUE_SIZE: Record<MetricSize, string> = {
   sm: 'text-xl',
   md: 'text-[26px] leading-[1.1]',
   lg: 'text-[34px] leading-[1.05]',
+  xl: 'text-[48px] leading-[1]',
+}
+
+// Fraction size when `fractionBelow` puts it on its own line. Each is a
+// slight bump over the inline 0.55em superscript yet stays comfortably
+// smaller than the matching VALUE_SIZE percentage above it.
+const FRACTION_BELOW_SIZE: Record<MetricSize, string> = {
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+  xl: 'text-2xl',
 }
 
 const RAIL_CLASS: Record<MetricTone, string> = {
@@ -76,6 +90,7 @@ export function MetricCard({
   tone = 'neutral',
   onClick,
   icon,
+  fractionBelow = false,
 }: MetricCardProps) {
   const raw =
     format === 'number' && typeof value === 'number' ? value.toLocaleString() : value
@@ -125,12 +140,17 @@ export function MetricCard({
         className={`srh-kpi-value srh-pulse mt-2 ${VALUE_SIZE[size]}`}
       >
         {head}
-        {tail && (
+        {tail && !fractionBelow && (
           <span className="ml-1.5 align-middle text-[0.55em] font-semibold text-muted">
             ({tail})
           </span>
         )}
       </p>
+      {tail && fractionBelow && (
+        <p className={`mt-1 font-semibold text-muted ${FRACTION_BELOW_SIZE[size]}`}>
+          ({tail})
+        </p>
+      )}
 
       {subtitle && (
         <p className={`mt-1.5 text-[13px] font-semibold ${SUBTITLE_CLASS[subtitleColor]}`}>
@@ -140,7 +160,7 @@ export function MetricCard({
 
       {interactive && (
         <p className="mt-3 text-[10px] font-medium uppercase tracking-label text-primary/70">
-          Click to deep dive →
+          Hover to deep dive →
         </p>
       )}
     </div>
