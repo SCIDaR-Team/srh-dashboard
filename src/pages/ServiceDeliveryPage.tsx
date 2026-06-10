@@ -274,6 +274,9 @@ export default function ServiceDeliveryPage() {
                 subtitleColor={pacMom.pct >= 0 ? 'green' : 'red'}
               />
               <div className="rounded-xl border border-gray-100 bg-card p-2 shadow-sm">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+                  Medical / Surgical
+                </p>
                 {pac === 0 ? (
                   <p className="flex h-full items-center justify-center text-sm text-muted">
                     No PAC data
@@ -284,7 +287,6 @@ export default function ServiceDeliveryPage() {
                     size={140}
                     innerRadius={30}
                     showLegend={false}
-                    centerLabel="medical / surgical"
                     centerValue={formatK(pac)}
                     showHover={false}
                   />

@@ -120,14 +120,14 @@ export function DonutChart({
 
       {(centerValue || centerLabel) && (
         <div
-          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1"
+          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 px-2"
         >
           {centerValue && (
-            <span className="srh-kpi-value text-[26px] leading-[1.05]">
+            <span className="srh-kpi-value text-center text-[26px] leading-[1.05]">
               {centerValue}
             </span>
           )}
-          {centerLabel && <span className="srh-label">{centerLabel}</span>}
+          {centerLabel && <span className="srh-label text-center text-xs leading-tight">{centerLabel}</span>}
         </div>
       )}
     </div>
