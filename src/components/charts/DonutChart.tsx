@@ -6,7 +6,8 @@
  */
 
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { CHART_SERIES_COLORS, COLORS } from '../../lib/constants'
+import { CHART_SERIES_COLORS } from '../../lib/constants'
+import { CHART_LEGEND_STYLE, ChartTooltip, ChartEmpty } from '../../lib/chartTheme'
 
 export interface DonutDatum {
   name: string
@@ -35,6 +36,10 @@ export function DonutChart({
   showLegend = true,
 }: DonutChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0)
+
+  if (total === 0) {
+    return <ChartEmpty height={size} variant="donut" />
+  }
 
   // Recharts' PieLabelRenderProps types `name`/`value` as optional; coerce.
   const renderLabel = (props: { name?: string | number; value?: number }) => {
@@ -67,18 +72,12 @@ export function DonutChart({
               />
             ))}
           </Pie>
-          <Tooltip
-            formatter={(value: unknown, name: unknown) => [
-              Number(value).toLocaleString(),
-              String(name),
-            ]}
-            contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.lightGreen}` }}
-          />
+          <Tooltip content={<ChartTooltip />} />
           {showLegend && (
             <Legend
               verticalAlign="bottom"
               iconType="circle"
-              wrapperStyle={{ fontSize: 12, color: COLORS.muted }}
+              wrapperStyle={CHART_LEGEND_STYLE}
             />
           )}
         </PieChart>
@@ -86,13 +85,15 @@ export function DonutChart({
 
       {(centerValue || centerLabel) && (
         <div
-          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"
+          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1"
           style={{ top: showLegend ? '-12%' : 0 }}
         >
           {centerValue && (
-            <span className="font-heading text-2xl font-bold text-ink">{centerValue}</span>
+            <span className="srh-kpi-value text-[26px] leading-[1.05]">
+              {centerValue}
+            </span>
           )}
-          {centerLabel && <span className="text-xs text-muted">{centerLabel}</span>}
+          {centerLabel && <span className="srh-label">{centerLabel}</span>}
         </div>
       )}
     </div>

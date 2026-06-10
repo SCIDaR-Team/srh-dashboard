@@ -23,25 +23,35 @@ export const COLORS = {
   primary: '#006B3F',
   accent: '#00A859',
   lightGreen: '#E8F5E9',
-  danger: '#E52834',
+  danger: '#DC2626', // refined: was #E52834; quieter next to amber
+  amber: '#F59E0B', // new: stockout risk, low-coverage warnings
   rose: '#FFC0CB',
   warning: '#FFE4B5',
   ink: '#1A1A1A',
   muted: '#6B7280',
   card: '#FFFFFF',
-  page: '#F0F4F0',
+  page: '#F6F7F9', // neutral slate-tint (was sage-green #F0F4F0)
+  // Chart-chrome neutrals (slate ramp). Chart axes, grid lines, tooltip
+  // borders, hover backgrounds all pull from here.
+  slate100: '#F1F5F9',
+  slate200: '#E2E8F0',
+  slate500: '#64748B',
 } as const
 
-/** Ordered palette for categorical series (donut slices, stacked bars). */
+/** Ordered palette for categorical series (donut slices, stacked bars).
+ *  Refined for the new look: greens for in-program activity, amber/red
+ *  for cautionary series, blue for a neutral counter-tone, slate for
+ *  "other". The two pastels (rose / warning) are reserved for the
+ *  stock-out stacked bars where the rose/green pairing is canonical. */
 export const CHART_SERIES_COLORS = [
   '#006B3F',
   '#00A859',
   '#4FB286',
   '#8FD3B6',
-  '#FFC0CB',
-  '#FFE4B5',
-  '#E52834',
-  '#6B7280',
+  '#F59E0B',
+  '#3B82F6',
+  '#DC2626',
+  '#64748B',
 ] as const
 
 /** Top-level navigation. Routes mirror Claude_Code_Prompts_SRH_Dashboard_v2. */

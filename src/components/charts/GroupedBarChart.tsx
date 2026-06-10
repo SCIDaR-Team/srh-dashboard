@@ -22,7 +22,15 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { CHART_SERIES_COLORS, COLORS } from '../../lib/constants'
+import { CHART_SERIES_COLORS } from '../../lib/constants'
+import {
+  CHART_AXIS_TICK,
+  CHART_GRID_STROKE,
+  CHART_CURSOR_FILL,
+  CHART_LEGEND_STYLE,
+  ChartTooltip,
+  ChartEmpty,
+} from '../../lib/chartTheme'
 
 export interface GroupedBarGroup {
   category: string
@@ -39,14 +47,11 @@ interface GroupedBarChartProps {
   sort?: 'desc' | 'asc' | 'none'
 }
 
-const axisStyle = { fontSize: 12, fill: COLORS.muted }
-
 export function GroupedBarChart({
   data,
   height = 280,
   sort = 'desc',
 }: GroupedBarChartProps) {
-  // Sort groups by combined series total — biggest cluster first.
   const ordered =
     sort === 'none'
       ? data
@@ -56,7 +61,6 @@ export function GroupedBarChart({
           return sort === 'desc' ? sb - sa : sa - sb
         })
 
-  // Flatten to Recharts' "wide" shape: { category, <seriesName>: <value>, ... }
   const seriesNames: string[] = []
   const seenColors: Record<string, string> = {}
   for (const group of ordered) {
@@ -64,6 +68,14 @@ export function GroupedBarChart({
       if (!seriesNames.includes(v.name)) seriesNames.push(v.name)
       if (v.color && !seenColors[v.name]) seenColors[v.name] = v.color
     }
+  }
+
+  const grandTotal = ordered.reduce(
+    (acc, g) => acc + g.values.reduce((s, v) => s + v.value, 0),
+    0,
+  )
+  if (grandTotal === 0) {
+    return <ChartEmpty height={height} variant="bar" />
   }
 
   const flat = ordered.map((g) => {
@@ -75,28 +87,24 @@ export function GroupedBarChart({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ReBarChart data={flat} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} vertical={false} />
         <XAxis
           dataKey="category"
-          tick={axisStyle}
+          tick={CHART_AXIS_TICK}
           axisLine={false}
           tickLine={false}
           interval={0}
         />
-        <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
+        <YAxis tick={CHART_AXIS_TICK} axisLine={false} tickLine={false} />
         <Tooltip
-          cursor={{ fill: COLORS.lightGreen, opacity: 0.3 }}
-          formatter={(value: unknown, name: unknown) => [
-            Number(value).toLocaleString(),
-            String(name),
-          ]}
-          contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.lightGreen}` }}
+          cursor={{ fill: CHART_CURSOR_FILL, opacity: 1 }}
+          content={<ChartTooltip />}
         />
         <Legend
           verticalAlign="top"
           align="right"
           iconType="circle"
-          wrapperStyle={{ fontSize: 12, color: COLORS.muted }}
+          wrapperStyle={CHART_LEGEND_STYLE}
         />
         {seriesNames.map((name, i) => (
           <Bar

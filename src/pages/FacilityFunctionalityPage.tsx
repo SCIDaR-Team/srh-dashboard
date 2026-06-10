@@ -14,6 +14,7 @@
 import { Users, Building2, Truck, Ambulance } from 'lucide-react'
 import { MetricCard, SectionCard, GaugeChart } from '../components/ui'
 import { DonutChart, HBarChart } from '../components/charts'
+import { ChartEmpty } from '../lib/chartTheme'
 import { useODKData } from '../hooks/useODKData'
 import { useBaselineData } from '../hooks/useBaselineData'
 import { useFilteredData } from '../hooks/useFilteredData'
@@ -199,7 +200,7 @@ export default function FacilityFunctionalityPage() {
               Transport type
             </p>
             {transportBars.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted">No data.</p>
+              <ChartEmpty height={220} variant="bar" />
             ) : (
               <HBarChart data={transportBars} height={220} showValues />
             )}

@@ -17,6 +17,12 @@ import {
   LabelList,
 } from 'recharts'
 import { COLORS } from '../../lib/constants'
+import {
+  CHART_AXIS_TICK,
+  CHART_GRID_STROKE,
+  CHART_CURSOR_FILL,
+  ChartTooltip,
+} from '../../lib/chartTheme'
 
 export interface HBarDatum {
   name: string
@@ -41,8 +47,6 @@ interface HBarChartProps {
   sort?: 'desc' | 'asc' | 'none'
 }
 
-const axisStyle = { fontSize: 12, fill: COLORS.muted }
-
 export function HBarChart({
   data,
   height = 280,
@@ -51,8 +55,6 @@ export function HBarChart({
   color = COLORS.primary,
   sort = 'desc',
 }: HBarChartProps) {
-  // Recharts plots Y-axis data top-to-bottom in array order, so descending
-  // sort puts the largest bar at the top — the natural read order.
   const ordered =
     sort === 'none'
       ? data
@@ -65,27 +67,23 @@ export function HBarChart({
       <ReBarChart
         data={ordered}
         layout="vertical"
-        margin={{ top: 8, right: showValues ? 40 : 12, bottom: 4, left: 8 }}
+        margin={{ top: 8, right: showValues ? 44 : 12, bottom: 4, left: 8 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal />
-        <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} horizontal />
+        <XAxis type="number" tick={CHART_AXIS_TICK} axisLine={false} tickLine={false} />
         <YAxis
           type="category"
           dataKey="name"
-          tick={axisStyle}
+          tick={CHART_AXIS_TICK}
           axisLine={false}
           tickLine={false}
           width={130}
         />
         <Tooltip
-          cursor={{ fill: COLORS.lightGreen, opacity: 0.4 }}
-          formatter={(value: unknown) => [
-            `${Number(value).toLocaleString()}${unit}`,
-            'Value',
-          ]}
-          contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.lightGreen}` }}
+          cursor={{ fill: CHART_CURSOR_FILL, opacity: 1 }}
+          content={<ChartTooltip unit={unit} />}
         />
-        <Bar dataKey="value" radius={[0, 6, 6, 0]} isAnimationActive>
+        <Bar dataKey="value" name="Value" radius={[0, 6, 6, 0]} isAnimationActive>
           {ordered.map((d) => (
             <Cell key={d.name} fill={d.color ?? color} />
           ))}
@@ -93,7 +91,7 @@ export function HBarChart({
             <LabelList
               dataKey="value"
               position="right"
-              style={{ fontSize: 12, fill: COLORS.ink, fontWeight: 600 }}
+              style={{ fontSize: 11, fill: COLORS.ink, fontWeight: 600 }}
               formatter={(v: unknown) => Number(v).toLocaleString()}
             />
           )}

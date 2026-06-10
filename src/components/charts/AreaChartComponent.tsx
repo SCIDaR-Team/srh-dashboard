@@ -17,6 +17,12 @@ import {
 } from 'recharts'
 import { format, parse } from 'date-fns'
 import { COLORS } from '../../lib/constants'
+import {
+  CHART_AXIS_TICK,
+  CHART_GRID_STROKE,
+  ChartTooltip,
+  ChartEmpty,
+} from '../../lib/chartTheme'
 
 export interface AreaPoint {
   month: string // ISO "YYYY-MM"
@@ -32,8 +38,6 @@ interface AreaChartProps {
   /** Suffix appended in tooltip + labels, e.g. "%" */
   unit?: string
 }
-
-const axisStyle = { fontSize: 12, fill: COLORS.muted }
 
 const fmtMonth = (iso: string): string => {
   try {
@@ -51,10 +55,21 @@ export function AreaChartComponent({
   title,
   unit = '',
 }: AreaChartProps) {
+  if (data.length === 0) {
+    return (
+      <div className="w-full">
+        {title && (
+          <h3 className="srh-section-title mb-2 text-base">{title}</h3>
+        )}
+        <ChartEmpty height={height} variant="area" />
+      </div>
+    )
+  }
+
   return (
     <div className="w-full">
       {title && (
-        <h3 className="mb-2 font-heading text-base font-semibold text-ink">{title}</h3>
+        <h3 className="srh-section-title mb-2 text-base">{title}</h3>
       )}
       <ResponsiveContainer width="100%" height={height}>
         <ReAreaChart data={data} margin={{ top: 16, right: 16, bottom: 4, left: 0 }}>
@@ -64,26 +79,27 @@ export function AreaChartComponent({
               <stop offset="100%" stopColor={color} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} vertical={false} />
           <XAxis
             dataKey="month"
             tickFormatter={fmtMonth}
-            tick={axisStyle}
+            tick={CHART_AXIS_TICK}
             axisLine={false}
             tickLine={false}
           />
-          <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={false} tickLine={false} />
           <Tooltip
-            labelFormatter={(label: unknown) => fmtMonth(String(label))}
-            formatter={(value: unknown) => [
-              `${Number(value).toLocaleString()}${unit}`,
-              'Value',
-            ]}
-            contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.lightGreen}` }}
+            content={
+              <ChartTooltip
+                unit={unit}
+                labelFormatter={(label) => fmtMonth(String(label))}
+              />
+            }
           />
           <Area
             type="monotone"
             dataKey="value"
+            name="Value"
             stroke={color}
             strokeWidth={2.5}
             fill="url(#srh-area-fill)"

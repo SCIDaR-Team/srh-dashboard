@@ -23,7 +23,7 @@ const VARIANT_HEIGHT: Record<NonNullable<SkeletonProps['variant']>, string> = {
 export function Skeleton({ variant = 'card', className = '', index = 0 }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse rounded-xl bg-gray-100 ${VARIANT_HEIGHT[variant]} ${className}`}
+      className={`animate-pulse rounded-card bg-slate-100 ${VARIANT_HEIGHT[variant]} ${className}`}
       style={{ animationDelay: `${index * 80}ms` }}
       aria-hidden="true"
     />

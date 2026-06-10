@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react'
 import { ChevronDown, TrendingUp } from 'lucide-react'
 import { SectionCard } from '../components/ui'
 import { AreaChartComponent } from '../components/charts'
+import { ChartEmpty } from '../lib/chartTheme'
 import { useODKData } from '../hooks/useODKData'
 import { useFilteredData } from '../hooks/useFilteredData'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -79,9 +80,11 @@ export default function TrendAnalysisPage() {
       {/* Area chart */}
       <SectionCard title={`Trend — ${indicator}`}>
         {trend.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted">
-            No data for this indicator in the current scope.
-          </p>
+          <ChartEmpty
+            height={360}
+            variant="area"
+            label={`No data for ${indicator} in the current scope.`}
+          />
         ) : (
           <AreaChartComponent
             data={trend}

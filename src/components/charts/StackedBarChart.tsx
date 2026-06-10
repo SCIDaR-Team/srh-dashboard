@@ -4,7 +4,8 @@
  *
  * Each datum is `{ category, stocked, stockedOut }` per spec; the chart
  * draws one column per category with green ("stocked") on top of rose
- * ("stocked out"). Percentage labels are rendered inside each segment.
+ * ("stocked out"). Percentage labels are rendered inside each segment
+ * — hidden when the segment is too narrow to fit them legibly.
  */
 
 import {
@@ -19,6 +20,14 @@ import {
   LabelList,
 } from 'recharts'
 import { COLORS } from '../../lib/constants'
+import {
+  CHART_AXIS_TICK,
+  CHART_GRID_STROKE,
+  CHART_CURSOR_FILL,
+  CHART_LEGEND_STYLE,
+  ChartTooltip,
+  ChartEmpty,
+} from '../../lib/chartTheme'
 
 export interface StackedDatum {
   category: string
@@ -47,7 +56,8 @@ interface StackedBarChartProps {
   sort?: 'desc' | 'asc' | 'none'
 }
 
-const axisStyle = { fontSize: 12, fill: COLORS.muted }
+/** Hide inline percent labels when a segment is too thin to fit them. */
+const MIN_PCT_FOR_LABEL = 12
 
 export function StackedBarChart({
   data,
@@ -59,7 +69,6 @@ export function StackedBarChart({
 }: StackedBarChartProps) {
   const isHorizontal = orientation === 'horizontal'
 
-  // Sort by total stack height — biggest stack first, regardless of orientation.
   const ordered =
     sort === 'none'
       ? data
@@ -69,27 +78,21 @@ export function StackedBarChart({
           return sort === 'desc' ? sb - sa : sa - sb
         })
 
-  // Pre-compute percentage strings for inside-bar labels.
   const withPct = ordered.map((d) => {
     const total = d.stocked + d.stockedOut
+    const stockedPct = total === 0 ? 0 : Math.round((d.stocked / total) * 100)
+    const stockedOutPct = total === 0 ? 0 : Math.round((d.stockedOut / total) * 100)
     return {
       ...d,
-      stockedPct: total === 0 ? '' : `${Math.round((d.stocked / total) * 100)}%`,
-      stockedOutPct: total === 0 ? '' : `${Math.round((d.stockedOut / total) * 100)}%`,
+      stockedPctLabel: total === 0 || stockedPct < MIN_PCT_FOR_LABEL ? '' : `${stockedPct}%`,
+      stockedOutPctLabel:
+        total === 0 || stockedOutPct < MIN_PCT_FOR_LABEL ? '' : `${stockedOutPct}%`,
     }
   })
 
-  // No data → show a calm empty state instead of a chart with zero-height bars.
   const grandTotal = withPct.reduce((acc, d) => acc + d.stocked + d.stockedOut, 0)
   if (grandTotal === 0) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-lg border border-dashed border-black/10 bg-light-green/30 text-sm text-muted"
-        style={{ height }}
-      >
-        No data for the selected scope.
-      </div>
-    )
+    return <ChartEmpty height={height} variant="bar" />
   }
 
   return (
@@ -106,17 +109,17 @@ export function StackedBarChart({
       >
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke="#E5E7EB"
+          stroke={CHART_GRID_STROKE}
           vertical={isHorizontal}
           horizontal={!isHorizontal}
         />
         {isHorizontal ? (
           <>
-            <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} />
+            <XAxis type="number" tick={CHART_AXIS_TICK} axisLine={false} tickLine={false} />
             <YAxis
               type="category"
               dataKey="category"
-              tick={axisStyle}
+              tick={CHART_AXIS_TICK}
               axisLine={false}
               tickLine={false}
               width={150}
@@ -128,28 +131,24 @@ export function StackedBarChart({
             <XAxis
               type="category"
               dataKey="category"
-              tick={axisStyle}
+              tick={CHART_AXIS_TICK}
               axisLine={false}
               tickLine={false}
               interval={0}
             />
-            <YAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} />
+            <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={false} tickLine={false} />
           </>
         )}
         <Tooltip
-          cursor={{ fill: COLORS.lightGreen, opacity: 0.4 }}
-          formatter={(value: unknown, name: unknown) => [
-            Number(value).toLocaleString(),
-            String(name),
-          ]}
-          contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.lightGreen}` }}
+          cursor={{ fill: CHART_CURSOR_FILL, opacity: 1 }}
+          content={<ChartTooltip />}
         />
-        <Legend iconType="circle" wrapperStyle={{ fontSize: 12, color: COLORS.muted }} />
+        <Legend iconType="circle" wrapperStyle={CHART_LEGEND_STYLE} />
         <Bar dataKey="stocked" name={labels.stocked} stackId="a" fill={colors.stocked}>
           <LabelList
-            dataKey="stockedPct"
+            dataKey="stockedPctLabel"
             position="center"
-            style={{ fontSize: 11, fill: '#fff', fontWeight: 600 }}
+            style={{ fontSize: 11, fill: '#fff', fontWeight: 700 }}
           />
         </Bar>
         <Bar
@@ -160,9 +159,9 @@ export function StackedBarChart({
           radius={isHorizontal ? [0, 6, 6, 0] : [6, 6, 0, 0]}
         >
           <LabelList
-            dataKey="stockedOutPct"
+            dataKey="stockedOutPctLabel"
             position="center"
-            style={{ fontSize: 11, fill: COLORS.ink, fontWeight: 600 }}
+            style={{ fontSize: 11, fill: COLORS.ink, fontWeight: 700 }}
           />
         </Bar>
       </ReBarChart>
