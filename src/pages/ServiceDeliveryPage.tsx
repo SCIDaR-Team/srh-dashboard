@@ -193,7 +193,7 @@ export default function ServiceDeliveryPage() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Facilities at risk of stock-out" headerColor="#FCE4E6">
+          <SectionCard title="Facilities at risk of stock-out" tone="warning">
             <div className="grid grid-cols-3 gap-3">
               <MetricCard
                 title="No stock"

@@ -254,7 +254,7 @@ export default function OverviewPage() {
               />
             </div>
 
-            <SectionCard title="Deaths (in-facility)" headerColor="#FCE4E6">
+            <SectionCard title="Deaths (in-facility)" tone="danger">
               <div className="grid grid-cols-3 gap-3">
                 <BreakdownMetric
                   title="Total"

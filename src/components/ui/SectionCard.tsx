@@ -1,26 +1,41 @@
 /**
- * SectionCard — titled container used to group related metrics/charts
- * (e.g. "Family Planning", "Maternal and Newborn Health").
+ * SectionCard — titled container that groups related metrics/charts.
  *
- * Visual style follows the original Power BI dashboard: a coloured strip
- * across the top carrying the section title, then a clean white body.
+ * Header is a clean title with a 3px vertical accent rail on its left,
+ * keyed by `tone`. Replaces the original Power BI-style coloured strip
+ * with a lighter treatment that lets the contained metrics carry the
+ * visual weight.
+ *
+ * `tone="primary"` (default) marks ordinary sections; `"warning"` flags
+ * watch-list content (stockout risk); `"danger"` flags deficit content
+ * (deaths). The rail color is the only chrome change between tones —
+ * the body stays neutral so cautionary sections don't feel alarming.
  */
 
 import type { ReactNode } from 'react'
 
+type SectionTone = 'primary' | 'accent' | 'warning' | 'danger' | 'neutral'
+
 interface SectionCardProps {
   title: string
-  /** Header strip background colour. Defaults to the light-green band. */
-  headerColor?: string
+  tone?: SectionTone
   children: ReactNode
   onClick?: () => void
   /** Optional element rendered on the right of the header (e.g. a slicer). */
   action?: ReactNode
 }
 
+const RAIL_COLOR: Record<SectionTone, string> = {
+  primary: 'border-primary',
+  accent: 'border-accent',
+  warning: 'border-amber-500',
+  danger: 'border-danger',
+  neutral: 'border-slate-300',
+}
+
 export function SectionCard({
   title,
-  headerColor = '#E8F5E9',
+  tone = 'primary',
   children,
   onClick,
   action,
@@ -30,16 +45,15 @@ export function SectionCard({
   return (
     <section
       className={[
-        'srh-fade-in overflow-hidden rounded-xl border border-gray-100 bg-card shadow-sm transition-shadow',
-        interactive ? 'cursor-pointer hover:shadow-md' : '',
+        'srh-fade-in srh-surface overflow-hidden',
+        interactive ? 'srh-surface-hover cursor-pointer' : '',
       ].join(' ')}
       onClick={onClick}
     >
-      <header
-        className="flex items-center justify-between gap-3 px-5 py-2.5"
-        style={{ backgroundColor: headerColor }}
-      >
-        <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-primary/80">
+      <header className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
+        <h3
+          className={`srh-section-title border-l-[3px] pl-3 ${RAIL_COLOR[tone]}`}
+        >
           {title}
         </h3>
         {action}
