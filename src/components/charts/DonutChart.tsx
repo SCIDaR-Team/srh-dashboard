@@ -6,6 +6,7 @@
  */
 
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import type { PieLabelRenderProps } from 'recharts'
 import { CHART_SERIES_COLORS } from '../../lib/constants'
 import { CHART_LEGEND_STYLE, ChartTooltip, ChartEmpty } from '../../lib/chartTheme'
 
@@ -41,16 +42,7 @@ function readableOn(hex: string): string {
   return lum > 0.62 ? '#1A1A1A' : '#FFFFFF'
 }
 
-interface SliceLabelProps {
-  cx: number
-  cy: number
-  midAngle: number
-  innerRadius: number
-  outerRadius: number
-  percent: number
-  value: number
-  fill: string
-}
+
 
 export function DonutChart({
   data,
@@ -69,8 +61,8 @@ export function DonutChart({
 
   // Per-slice value drawn at the mid-radius of the ring (no leader lines, so
   // it never overflows the container or collides with the legend/centre).
-  const renderSliceValue = (props: SliceLabelProps) => {
-    const { cx, cy, midAngle, innerRadius: ir, outerRadius: or, percent, value, fill } = props
+  const renderSliceValue = (props: PieLabelRenderProps) => {
+    const { cx = 0, cy = 0, midAngle = 0, innerRadius: ir = 0, outerRadius: or = 0, percent = 0, value = 0, fill = '#FFF' } = props
     if (!percent || percent < 0.04) return null
     const r = ir + (or - ir) / 2
     const x = cx + r * Math.cos(-midAngle * RADIAN)
