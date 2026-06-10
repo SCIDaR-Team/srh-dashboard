@@ -32,22 +32,41 @@ export interface GroupedBarGroup {
 interface GroupedBarChartProps {
   data: GroupedBarGroup[]
   height?: number
+  /**
+   * Category order. Defaults to `"desc"` (groups with the largest combined
+   * total appear first). Pass `"none"` to preserve `data`'s order.
+   */
+  sort?: 'desc' | 'asc' | 'none'
 }
 
 const axisStyle = { fontSize: 12, fill: COLORS.muted }
 
-export function GroupedBarChart({ data, height = 280 }: GroupedBarChartProps) {
+export function GroupedBarChart({
+  data,
+  height = 280,
+  sort = 'desc',
+}: GroupedBarChartProps) {
+  // Sort groups by combined series total — biggest cluster first.
+  const ordered =
+    sort === 'none'
+      ? data
+      : [...data].sort((a, b) => {
+          const sa = a.values.reduce((s, v) => s + v.value, 0)
+          const sb = b.values.reduce((s, v) => s + v.value, 0)
+          return sort === 'desc' ? sb - sa : sa - sb
+        })
+
   // Flatten to Recharts' "wide" shape: { category, <seriesName>: <value>, ... }
   const seriesNames: string[] = []
   const seenColors: Record<string, string> = {}
-  for (const group of data) {
+  for (const group of ordered) {
     for (const v of group.values) {
       if (!seriesNames.includes(v.name)) seriesNames.push(v.name)
       if (v.color && !seenColors[v.name]) seenColors[v.name] = v.color
     }
   }
 
-  const flat = data.map((g) => {
+  const flat = ordered.map((g) => {
     const row: Record<string, string | number> = { category: g.category }
     for (const v of g.values) row[v.name] = v.value
     return row

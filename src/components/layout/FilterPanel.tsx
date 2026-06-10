@@ -30,8 +30,6 @@ function lastTwelveMonths(): string[] {
 }
 
 interface FilterPanelProps {
-  /** "default" = standard slicers; "facility" replaces State with Commodity. */
-  variant?: 'default' | 'facility'
   /** When true (mobile drawer mode), call onDismiss on backdrop click. */
   isDrawer?: boolean
   onDismiss?: () => void
@@ -47,7 +45,6 @@ const SELECT_CLASS =
 const LABEL_CLASS = 'flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-white/70'
 
 export function FilterPanel({
-  variant = 'default',
   isDrawer = false,
   onDismiss,
 }: FilterPanelProps) {

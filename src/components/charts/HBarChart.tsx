@@ -33,6 +33,12 @@ interface HBarChartProps {
   unit?: string
   /** Default colour when a datum doesn't specify one */
   color?: string
+  /**
+   * Row order. Defaults to `"desc"` (largest bar at top) — pass `"none"`
+   * to preserve the order of `data` (e.g. when categories follow a
+   * natural sequence the caller cares about).
+   */
+  sort?: 'desc' | 'asc' | 'none'
 }
 
 const axisStyle = { fontSize: 12, fill: COLORS.muted }
@@ -43,11 +49,21 @@ export function HBarChart({
   showValues = false,
   unit = '',
   color = COLORS.primary,
+  sort = 'desc',
 }: HBarChartProps) {
+  // Recharts plots Y-axis data top-to-bottom in array order, so descending
+  // sort puts the largest bar at the top — the natural read order.
+  const ordered =
+    sort === 'none'
+      ? data
+      : [...data].sort((a, b) =>
+          sort === 'desc' ? b.value - a.value : a.value - b.value,
+        )
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ReBarChart
-        data={data}
+        data={ordered}
         layout="vertical"
         margin={{ top: 8, right: showValues ? 40 : 12, bottom: 4, left: 8 }}
       >
@@ -70,7 +86,7 @@ export function HBarChart({
           contentStyle={{ borderRadius: 8, border: `1px solid ${COLORS.lightGreen}` }}
         />
         <Bar dataKey="value" radius={[0, 6, 6, 0]} isAnimationActive>
-          {data.map((d) => (
+          {ordered.map((d) => (
             <Cell key={d.name} fill={d.color ?? color} />
           ))}
           {showValues && (

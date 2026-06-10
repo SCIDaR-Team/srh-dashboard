@@ -39,6 +39,12 @@ interface StackedBarChartProps {
    *   for long names (e.g. "Carbetocin (Heat Stable)").
    */
   orientation?: 'vertical' | 'horizontal'
+  /**
+   * Category order. Defaults to `"desc"` (biggest stack first / on top).
+   * Pass `"none"` to keep `data`'s order — useful when categories follow
+   * a fixed sequence the caller cares about.
+   */
+  sort?: 'desc' | 'asc' | 'none'
 }
 
 const axisStyle = { fontSize: 12, fill: COLORS.muted }
@@ -49,10 +55,22 @@ export function StackedBarChart({
   colors = { stocked: COLORS.accent, stockedOut: COLORS.rose },
   labels = { stocked: 'Stocked', stockedOut: 'Stocked out' },
   orientation = 'vertical',
+  sort = 'desc',
 }: StackedBarChartProps) {
   const isHorizontal = orientation === 'horizontal'
+
+  // Sort by total stack height — biggest stack first, regardless of orientation.
+  const ordered =
+    sort === 'none'
+      ? data
+      : [...data].sort((a, b) => {
+          const sa = a.stocked + a.stockedOut
+          const sb = b.stocked + b.stockedOut
+          return sort === 'desc' ? sb - sa : sa - sb
+        })
+
   // Pre-compute percentage strings for inside-bar labels.
-  const withPct = data.map((d) => {
+  const withPct = ordered.map((d) => {
     const total = d.stocked + d.stockedOut
     return {
       ...d,

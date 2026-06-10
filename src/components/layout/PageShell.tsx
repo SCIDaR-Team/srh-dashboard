@@ -25,19 +25,16 @@ import { FilterPanel } from './FilterPanel'
 
 interface RouteConfig {
   showFilters?: boolean
-  filterVariant?: 'default' | 'facility'
 }
 
 const ROUTE_CONFIG: Record<string, RouteConfig> = {
   '/': { showFilters: false },
-  '/facility-functionality': { filterVariant: 'facility' },
 }
 
 export function PageShell() {
   const { pathname } = useLocation()
   const config = ROUTE_CONFIG[pathname] ?? {}
   const showFilters = config.showFilters !== false
-  const variant = config.filterVariant ?? 'default'
 
   // Mobile drawer state for FilterPanel.
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -52,7 +49,7 @@ export function PageShell() {
         {/* Desktop sidebar */}
         {showFilters && (
           <div className="hidden lg:block">
-            <FilterPanel variant={variant} />
+            <FilterPanel />
           </div>
         )}
 
@@ -66,7 +63,6 @@ export function PageShell() {
             />
             <div className="lg:hidden">
               <FilterPanel
-                variant={variant}
                 isDrawer
                 onDismiss={() => setDrawerOpen(false)}
               />
