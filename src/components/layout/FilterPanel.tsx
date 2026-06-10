@@ -1,10 +1,10 @@
 /**
  * FilterPanel — left-side filter sidebar.
  *
- * Light-chrome design (Round 4): white surface with a slate-200 right rail,
- * ink labels, primary-green focus accents on the dropdowns. The brand-green
- * sidebar slab of v1 has been retired so green can be reserved for the
- * brand mark and the active nav state.
+ * Dark-green slab on white labels. Keeps the brand-anchored chrome of v1
+ * while picking up the Round 4 affordances: an active-filter count chip
+ * in the header, a properly-disabled Reset button when nothing is set,
+ * and the `srh-label` typographic token on field labels.
  *
  * Drives the global Zustand filterStore. Cascading: changing State resets
  * LGA + Facility; changing LGA resets Facility. Dropdown options are sourced
@@ -40,11 +40,14 @@ interface FilterPanelProps {
   onDismiss?: () => void
 }
 
+// `text-white` colours the SELECTED value on the dark sidebar. The
+// `[&>option]:` arbitrary variant forces dropdown <option> elements back
+// to dark-text-on-white so they stay readable when the OS popup opens.
 const SELECT_CLASS =
-  'w-full min-w-0 rounded-md border border-slate-200 bg-card px-2 py-1.5 text-[13px] text-ink transition-colors hover:border-slate-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+  'w-full min-w-0 rounded-md border border-white/15 bg-white/10 px-2 py-1.5 text-[13px] text-white placeholder-white/50 transition-colors hover:border-white/25 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 [&>option]:bg-card [&>option]:text-ink'
 
 const LABEL_CLASS =
-  'flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-label text-muted'
+  'flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-label text-white/70'
 
 export function FilterPanel({
   isDrawer = false,
@@ -98,22 +101,20 @@ export function FilterPanel({
     <aside
       className={
         isDrawer
-          ? 'srh-fade-in fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-card shadow-card-hover'
-          : 'flex h-full w-52 shrink-0 flex-col border-r border-slate-200 bg-card'
+          ? 'srh-fade-in fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-primary text-white shadow-2xl'
+          : 'flex h-full w-52 shrink-0 flex-col bg-primary text-white'
       }
     >
-      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4 py-2.5">
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4 py-2.5">
         <div className="min-w-0 flex-1">
-          <p className="font-heading text-sm font-semibold leading-tight text-ink">
-            Filters
-          </p>
-          <p className="truncate text-[10px] leading-tight text-muted">
+          <p className="font-heading text-sm font-bold leading-tight">Filters</p>
+          <p className="truncate text-[10px] leading-tight text-white/60">
             Refine the dashboard scope
           </p>
         </div>
         {activeCount > 0 && !isDrawer && (
           <span
-            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-white"
+            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"
             aria-label={`${activeCount} active filter${activeCount === 1 ? '' : 's'}`}
           >
             {activeCount}
@@ -123,7 +124,7 @@ export function FilterPanel({
           <button
             type="button"
             onClick={onDismiss}
-            className="rounded-md p-1 text-muted hover:bg-slate-100 hover:text-ink"
+            className="rounded-md p-1 text-white/80 hover:bg-white/10"
             aria-label="Close filters"
           >
             <X size={18} />
@@ -142,7 +143,7 @@ export function FilterPanel({
             placeholder="Type a facility name…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`${SELECT_CLASS} placeholder:text-slate-400`}
+            className={SELECT_CLASS}
           />
         </div>
 
@@ -248,7 +249,7 @@ export function FilterPanel({
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-slate-200 px-4 py-2.5">
+      <footer className="shrink-0 border-t border-white/10 px-4 py-2.5">
         <button
           type="button"
           onClick={() => {
@@ -256,7 +257,7 @@ export function FilterPanel({
             setSearch('')
           }}
           disabled={activeCount === 0}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-card px-3 py-1.5 text-[13px] font-semibold text-ink transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-card"
+          className="flex w-full items-center justify-center gap-2 rounded-md bg-white/10 px-3 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/10"
         >
           <RotateCcw size={14} /> Reset all
         </button>
