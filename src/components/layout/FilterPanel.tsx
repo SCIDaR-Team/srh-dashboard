@@ -1,0 +1,254 @@
+/**
+ * FilterPanel — left-side filter sidebar (dark green on white labels).
+ *
+ * Drives the global Zustand filterStore. Cascading: changing State resets
+ * LGA + Facility; changing LGA resets Facility. Dropdown options are sourced
+ * from `useFilteredData` against the live ODK dataset, falling back to the
+ * static STATE_LIST when no data is loaded yet.
+ *
+ * On screens < 1024px the panel is collapsible via a hamburger button
+ * shown in TopNav; the panel itself slides in as a drawer with a backdrop.
+ */
+
+import { useState, useEffect, useMemo } from 'react'
+import { CalendarRange, MapPin, Building2, Search, RotateCcw, X } from 'lucide-react'
+import { useFilterStore, ALL } from '../../store/filterStore'
+import { STATE_LIST } from '../../lib/constants'
+import { useODKData } from '../../hooks/useODKData'
+import { useFilteredData } from '../../hooks/useFilteredData'
+
+/** Last 12 ISO months (newest first). Calendar facts — independent of data,
+ *  so the Reporting-month dropdown is always usable even pre-ODK. */
+function lastTwelveMonths(): string[] {
+  const out: string[] = []
+  const now = new Date()
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+  return out
+}
+
+interface FilterPanelProps {
+  /** "default" = standard slicers; "facility" replaces State with Commodity. */
+  variant?: 'default' | 'facility'
+  /** When true (mobile drawer mode), call onDismiss on backdrop click. */
+  isDrawer?: boolean
+  onDismiss?: () => void
+}
+
+// `text-white` colours the SELECTED value (shown on the dark sidebar). The
+// `[&>option]:` arbitrary variant forces the dropdown's <option> elements to
+// dark-text-on-white so they're readable when the OS popup opens. Without
+// it browsers inherit the white text → invisible-on-white bug.
+const SELECT_CLASS =
+  'w-full min-w-0 rounded-md border border-white/15 bg-white/10 px-2 py-1 text-[13px] text-white placeholder-white/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 [&>option]:bg-card [&>option]:text-ink'
+
+const LABEL_CLASS = 'flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-white/70'
+
+export function FilterPanel({
+  variant = 'default',
+  isDrawer = false,
+  onDismiss,
+}: FilterPanelProps) {
+  const state = useFilterStore((s) => s.state)
+  const lga = useFilterStore((s) => s.lga)
+  const facilityName = useFilterStore((s) => s.facilityName)
+  const facilityType = useFilterStore((s) => s.facilityType)
+  const reportingMonth = useFilterStore((s) => s.reportingMonth)
+  const searchFacility = useFilterStore((s) => s.searchFacility)
+  const setFilter = useFilterStore((s) => s.setFilter)
+  const resetFilters = useFilterStore((s) => s.resetFilters)
+
+  // Live ODK dataset → cascading dropdown sources.
+  const odk = useODKData()
+  const { availableStates, availableLGAs, availableFacilities, availableFacilityTypes, availableMonths } =
+    useFilteredData(odk.data)
+
+  // Fall backs when no ODK data is loaded yet — keep every dropdown
+  // showing real options so the panel never looks "empty".
+  const states = availableStates.length > 0 ? availableStates : [...STATE_LIST]
+  const types = availableFacilityTypes.length > 0 ? availableFacilityTypes : ['BEmONC', 'CEmONC']
+  const fallbackMonths = useMemo(() => lastTwelveMonths(), [])
+  const months = availableMonths.length > 0 ? availableMonths : fallbackMonths
+
+  // For LGA + Facility we genuinely don't know the values without ODK data,
+  // so we surface a disabled placeholder option explaining the empty state
+  // rather than letting the dropdown appear blank to the user.
+  const lgaEmptyHint = availableLGAs.length === 0
+  const facilityEmptyHint = availableFacilities.length === 0
+
+  // Local debounced echo for the search input (prevents typing-lag re-renders).
+  const [search, setSearch] = useState(searchFacility)
+  useEffect(() => setSearch(searchFacility), [searchFacility])
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (search !== searchFacility) setFilter('searchFacility', search)
+    }, 250)
+    return () => clearTimeout(id)
+  }, [search, searchFacility, setFilter])
+
+  return (
+    <aside
+      className={
+        isDrawer
+          ? 'srh-fade-in fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-primary text-white shadow-2xl'
+          : 'flex h-full w-52 shrink-0 flex-col bg-primary text-white'
+      }
+    >
+      <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-2">
+        <div className="min-w-0">
+          <p className="font-heading text-sm font-bold leading-tight">Filters</p>
+          <p className="truncate text-[10px] leading-tight text-white/60">
+            Refine the dashboard scope
+          </p>
+        </div>
+        {isDrawer && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="rounded-md p-1 text-white/80 hover:bg-white/10"
+            aria-label="Close filters"
+          >
+            <X size={18} />
+          </button>
+        )}
+      </header>
+
+      {/* All 6 filters fit in the available vertical space on standard
+          viewports. srh-scroll-hidden + overflow-y-auto is a safety net
+          for very short windows — scrollbar invisible, content reachable. */}
+      <div className="srh-scroll-hidden min-h-0 flex-1 space-y-2 overflow-y-auto px-4 py-2">
+        {/* Search */}
+        <div className="space-y-1">
+          <label className={LABEL_CLASS}>
+            <Search size={13} /> Search facility
+          </label>
+          <input
+            type="text"
+            placeholder="Type a facility name…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={SELECT_CLASS}
+          />
+        </div>
+
+        {/* State (or Commodity, on the facility variant) */}
+        {variant === 'default' && (
+          <div className="space-y-1">
+            <label className={LABEL_CLASS}>
+              <MapPin size={13} /> State
+            </label>
+            <select
+              className={SELECT_CLASS}
+              value={state}
+              onChange={(e) => setFilter('state', e.target.value)}
+            >
+              <option value={ALL}>All states</option>
+              {states.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* LGA */}
+        <div className="space-y-1">
+          <label className={LABEL_CLASS}>
+            <MapPin size={13} /> LGA
+          </label>
+          <select
+            className={SELECT_CLASS}
+            value={lga}
+            onChange={(e) => setFilter('lga', e.target.value)}
+          >
+            <option value={ALL}>All LGAs</option>
+            {lgaEmptyHint && (
+              <option disabled>— awaiting ODK data —</option>
+            )}
+            {availableLGAs.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Facility name */}
+        <div className="space-y-1">
+          <label className={LABEL_CLASS}>
+            <Building2 size={13} /> Facility
+          </label>
+          <select
+            className={SELECT_CLASS}
+            value={facilityName}
+            onChange={(e) => setFilter('facilityName', e.target.value)}
+          >
+            <option value={ALL}>All facilities</option>
+            {facilityEmptyHint && (
+              <option disabled>— awaiting ODK data —</option>
+            )}
+            {availableFacilities.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Facility type */}
+        <div className="space-y-1">
+          <label className={LABEL_CLASS}>
+            <Building2 size={13} /> Facility type
+          </label>
+          <select
+            className={SELECT_CLASS}
+            value={facilityType}
+            onChange={(e) => setFilter('facilityType', e.target.value)}
+          >
+            <option value={ALL}>All types</option>
+            {types.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Reporting month */}
+        <div className="space-y-1">
+          <label className={LABEL_CLASS}>
+            <CalendarRange size={13} /> Reporting month
+          </label>
+          <select
+            className={SELECT_CLASS}
+            value={reportingMonth}
+            onChange={(e) => setFilter('reportingMonth', e.target.value)}
+          >
+            <option value={ALL}>All months</option>
+            {months.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <footer className="shrink-0 border-t border-white/10 px-4 py-2">
+        <button
+          type="button"
+          onClick={() => {
+            resetFilters()
+            setSearch('')
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-md bg-white/10 px-3 py-1 text-[13px] font-semibold text-white transition-colors hover:bg-white/20"
+        >
+          <RotateCcw size={14} /> Reset all
+        </button>
+      </footer>
+    </aside>
+  )
+}

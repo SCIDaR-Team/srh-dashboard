@@ -1,0 +1,56 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  # Pin Node so the local Vite 8 / @netlify/functions stack matches the
+  # build container. Vite 8 requires Node 20.19+ or 22.12+.
+  NODE_VERSION = "20"
+
+[dev]
+  command = "npm run dev"
+  functionsPort = 9999
+  # Vite dev server runs on 5173 (see vite.config.ts); netlify dev will
+  # detect it and proxy /api/* through automatically.
+
+# ---------------------------------------------------------------------------
+# Redirects (evaluated top-to-bottom)
+# ---------------------------------------------------------------------------
+
+# API rewrite: /api/odk-data → /.netlify/functions/odk-data
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback: any non-asset path that isn't an /api call falls back to
+# index.html so client-side React Router routes (/overview, /governance,
+# etc.) survive a hard refresh.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ---------------------------------------------------------------------------
+# Asset cache headers
+# ---------------------------------------------------------------------------
+
+# Vite emits fingerprinted asset filenames (index-XXX.js, recharts-XXX.js)
+# so they can be cached aggressively.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# index.html itself must never be cached — clients need to discover new
+# hashed asset filenames after a deploy.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

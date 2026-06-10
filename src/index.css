@@ -1,0 +1,83 @@
+/* Google Fonts — Inter (body) + Plus Jakarta Sans / DM Sans (headings).
+   @import rules must precede all other statements (CSS spec). */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Sans:wght@500;600;700&display=swap');
+
+/* Tailwind v4 entrypoint + legacy config (palette, fonts) via @config. */
+@import 'tailwindcss';
+@config '../tailwind.config.ts';
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: theme(colors.page);
+    color: theme(colors.ink);
+    font-family: theme(fontFamily.sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: theme(fontFamily.heading);
+    color: theme(colors.ink);
+    font-weight: 600;
+  }
+
+  /* Thin, unobtrusive scrollbars to match the dashboard chrome. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5d0 transparent;
+  }
+}
+
+@layer components {
+  /* Shared card surface used across the dashboard. */
+  .srh-card {
+    @apply rounded-card bg-card shadow-card border border-black/5;
+  }
+
+  /* On-mount fade-in used by MetricCard, SectionCard, modals, drawers.
+     Honours prefers-reduced-motion to skip the animation for users who
+     have requested fewer effects. */
+  .srh-fade-in {
+    animation: srh-fade-in 320ms ease-out both;
+  }
+
+  /* Scrollable region without a visible scrollbar. Lets the FilterPanel
+     stay reachable on short viewports without the dashboard chrome
+     showing a scrollbar that competes for attention. */
+  .srh-scroll-hidden {
+    scrollbar-width: none;
+  }
+  .srh-scroll-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .srh-fade-in {
+      animation: none;
+    }
+  }
+}
+
+@keyframes srh-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
